@@ -264,7 +264,7 @@ body {
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.3s ease;
-    color: white;
+    color: black;
 }
 
 .track-image:hover .play-button,
@@ -502,6 +502,180 @@ body {
     transition: color 0.3s ease;
 }
 
-    .nav-link:hover {
-        color: var(--primary-color);
+.nav-link:hover {
+     color: var(--primary-color);
+}
+
+/* Стили для модерации */
+.table-active {
+    background-color: rgba(255, 219, 77, 0.1) !important;
+    border-left: 3px solid var(--primary-color);
+}
+
+.audio-player-moderation {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+/* Улучшенные кнопки действий */
+.btn-group {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+    .btn-group .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
     }
+
+/* Адаптивность для таблицы модерации */
+@media (max-width: 768px) {
+    .table-responsive table {
+        font-size: 0.8rem;
+    }
+
+    .btn-group {
+        flex-direction: column;
+    }
+
+        .btn-group .btn {
+            margin-bottom: 2px;
+            margin-right: 0;
+        }
+}
+
+/* Стили для плеера модерации */
+.moderation-player {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.player-info-moderation {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.track-name-moderation {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.artist-name-moderation {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.progress-moderation {
+    width: 100%;
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    margin: 15px 0;
+}
+
+.progress-bar-moderation {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.1s ease;
+    position: relative;
+}
+
+    .progress-bar-moderation::after {
+        content: '';
+        position: absolute;
+        right: -6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        background: #fff;
+        border: 2px solid #ffd93d;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+.time-display-moderation {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.player-controls-moderation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.control-btn-moderation {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #555;
+    transition: all 0.3s ease;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+    .control-btn-moderation:hover {
+        color: #333;
+        background-color: rgba(0,0,0,0.05);
+    }
+
+.play-btn-moderation {
+    background-color: #ffd93d;
+    color: white;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(255, 217, 61, 0.3);
+}
+
+    .play-btn-moderation:hover {
+        background-color: #ffcd00;
+        transform: scale(1.05);
+    }
+
+.volume-slider-moderation {
+    width: 80px;
+    margin-left: 10px;
+}
+
+/* Анимация пульсации при воспроизведении */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.playing .play-btn-moderation {
+    animation: pulse 2s infinite;
+}

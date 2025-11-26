@@ -116,9 +116,10 @@ namespace MusicStreamingService.Controllers
         public IActionResult Stream(int id)
         {
             var track = _context.Tracks.Find(id);
-            if (track == null || !track.IsModerated)
+            if (track == null)
                 return NotFound();
 
+            // Модераторы должны иметь доступ ко всем трекам, даже немодерированным
             var filePath = Path.Combine(_environment.WebRootPath, track.FilePath.TrimStart('/'));
 
             if (!System.IO.File.Exists(filePath))
