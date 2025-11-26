@@ -1,0 +1,24 @@
+﻿@model List<MusicStreamingService.Models.Track>
+
+@if (Model.Any())
+{
+    @foreach (var track in Model)
+    {
+        <div class="similar-track mb-2 p-2 border rounded">
+            <a href="/Tracks/Play/@track.Id" class="text-decoration-none">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong class="text-dark">@track.Title</strong>
+                        <br>
+                        <small class="text-muted">@track.Artist?.Name</small>
+                    </div>
+                    <span class="badge bg-primary">@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</span>
+                </div>
+            </a>
+        </div>
+    }
+}
+else
+{
+    <p class="text-muted">Нет похожих треков</p>
+}

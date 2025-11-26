@@ -1,0 +1,65 @@
+﻿@model List<MusicStreamingService.Models.Artist>
+@{
+    ViewData["Title"] = "Управление исполнителями";
+}
+
+<div class="container">
+    <h2>Управление исполнителями</h2>
+
+    <!-- Форма добавления исполнителя -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Добавить нового исполнителя</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-action="CreateArtist">
+                <div class="row">
+                    <div class="col-md-4">
+                        <input type="text" name="name" class="form-control" placeholder="Имя исполнителя" required>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="description" class="form-control" placeholder="Описание (опционально)">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">Добавить исполнителя</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список исполнителей -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Существующие исполнители</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="row">
+                    @foreach (var artist in Model)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">@artist.Name</h5>
+                                    <p class="card-text">@artist.Description</p>
+                                    <small class="text-muted">ID: @artist.Id</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">Исполнители еще не добавлены</p>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/Admin" class="btn btn-secondary">← Назад в админку</a>
+        <a href="/Tracks/Create" class="btn btn-success">Добавить трек</a>
+    </div>
+</div>

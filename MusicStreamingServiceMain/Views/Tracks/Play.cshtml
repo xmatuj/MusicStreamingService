@@ -1,0 +1,84 @@
+﻿@model MusicStreamingService.Models.Track
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Плеер -->
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">@Model.Title</h3>
+                    <p class="card-text">
+                        <strong>Исполнитель:</strong> @Model.Artist?.Name<br>
+                        <strong>Альбом:</strong> @(Model.Album?.Title ?? "Не указан")<br>
+                        <strong>Жанр:</strong> @Model.Genre?.Name<br>
+                        <strong>Длительность:</strong> @TimeSpan.FromSeconds(Model.Duration).ToString(@"mm\:ss")
+                    </p>
+
+                    <audio id="audioPlayer" controls class="w-100">
+                        <source src="/Tracks/Stream/@Model.Id" type="audio/mpeg">
+                        Ваш браузер не поддерживает аудио элементы.
+                    </audio>
+
+                    <div class="mt-3">
+                        <button id="playBtn" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Воспроизвести
+                        </button>
+                        <button id="pauseBtn" class="btn btn-secondary">
+                            <i class="fas fa-pause"></i> Пауза
+                        </button>
+                        <button id="likeBtn" class="btn btn-outline-danger">
+                            <i class="far fa-heart"></i> Добавить в избранное
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Похожие треки -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Похожие треки</h5>
+                </div>
+                <div class="card-body">
+                    <div id="similarTracks">
+                        <!-- Сюда загрузим похожие треки через AJAX -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const likeBtn = document.getElementById('likeBtn');
+
+        playBtn.addEventListener('click', () => {
+            audioPlayer.play();
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            audioPlayer.pause();
+        });
+
+        likeBtn.addEventListener('click', () => {
+            likeBtn.innerHTML = '<i class="fas fa-heart"></i> В избранном';
+            likeBtn.classList.remove('btn-outline-danger');
+            likeBtn.classList.add('btn-danger');
+        });
+
+        // Загрузка похожих треков
+        fetch('/Tracks/Similar?genreId=@Model.GenreId&currentTrackId=@Model.Id')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('similarTracks').innerHTML = html;
+            });
+    </script>
+}

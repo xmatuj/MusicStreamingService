@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "Панель управления";
+}
+
+<div class="container">
+    <h2>Панель управления музыкальным сервисом</h2>
+
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">🎵 Жанры</h5>
+                    <p class="card-text">Управление музыкальными жанрами</p>
+                    <a href="/Admin/Genres" class="btn btn-primary">Управлять жанрами</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">🎤 Исполнители</h5>
+                    <p class="card-text">Управление артистами и исполнителями</p>
+                    <a href="/Admin/Artists" class="btn btn-primary">Управлять исполнителями</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">💿 Альбомы</h5>
+                    <p class="card-text">Управление музыкальными альбомами</p>
+                    <a href="/Admin/Albums" class="btn btn-primary">Управлять альбомами</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">🎧 Треки</h5>
+                    <p class="card-text">Добавление новых треков</p>
+                    <a href="/Tracks/Create" class="btn btn-success">Добавить трек</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Модерация</h5>
+                    <p class="card-text">Модерация загруженных треков</p>
+                    <a href="/Admin/Moderation" class="btn btn-warning">Модерировать треки</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/" class="btn btn-secondary">← На главную</a>
+    </div>
+</div>

@@ -1,0 +1,58 @@
+﻿@model MusicStreamingService.Models.Track
+@{
+    ViewData["Title"] = "Модерация трека: " + Model.Title;
+}
+
+<div class="container">
+    <h2>Модерация трека</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">@Model.Title</h4>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <p><strong>Исполнитель:</strong> @Model.Artist?.Name</p>
+                    <p><strong>Жанр:</strong> @Model.Genre?.Name</p>
+                    <p><strong>Альбом:</strong> @(Model.Album?.Title ?? "Не указан")</p>
+                    <p><strong>Длительность:</strong> @TimeSpan.FromSeconds(Model.Duration).ToString(@"mm\:ss")</p>
+                    <p><strong>Файл:</strong> @Model.FilePath</p>
+                </div>
+                <div class="col-md-6">
+                    <!-- Аудиоплеер для предпрослушивания -->
+                    <h5>Предпрослушивание:</h5>
+                    <audio controls class="w-100">
+                        <source src="/Tracks/Stream/@Model.Id" type="audio/mpeg">
+                        Ваш браузер не поддерживает аудио элементы.
+                    </audio>
+                </div>
+            </div>
+
+            <!-- Формы для модерации -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <form method="post" action="/Moderation/Approve/@Model.Id">
+                        <div class="form-group">
+                            <label for="approveComment">Комментарий (опционально):</label>
+                            <textarea name="comment" id="approveComment" class="form-control" rows="2" placeholder="Комментарий при одобрении"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg">✅ Одобрить трек</button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <form method="post" action="/Moderation/Reject/@Model.Id">
+                        <div class="form-group">
+                            <label for="rejectComment">Причина отклонения:</label>
+                            <textarea name="comment" id="rejectComment" class="form-control" rows="2" placeholder="Укажите причину отклонения" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger btn-lg">❌ Отклонить трек</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/Moderation" class="btn btn-secondary">← Назад к списку</a>
+    </div>
+</div>

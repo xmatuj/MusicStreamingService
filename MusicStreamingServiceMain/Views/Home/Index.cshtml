@@ -33,10 +33,10 @@
         <div class="tracks-grid">
             @foreach (var track in Model.PopularTracks)
             {
-                <div class="track-card">
+                <div class="track-card" data-track-id="@track.Id">
                     <div class="track-image">
                         <img src="https://via.placeholder.com/150" alt="@track.Title" />
-                        <button class="play-button">
+                        <button class="play-button" onclick="playTrack(@track.Id, '@track.Title', '@track.Artist?.Name', @track.Duration)">
                             <i class="fas fa-play"></i>
                         </button>
                     </div>
@@ -47,7 +47,7 @@
                     </div>
                     <div class="track-actions">
                         <span class="track-duration">@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</span>
-                        <button class="like-button">
+                        <button class="like-button" onclick="likeTrack(@track.Id)">
                             <i class="far fa-heart"></i>
                         </button>
                     </div>
@@ -100,42 +100,190 @@
 </div>
 
 <!-- Музыкальный плеер -->
-<div class="music-player" id="musicPlayer">
+<div class="music-player" id="musicPlayer" style="display: none;">
     <div class="player-controls">
-        <button class="control-btn" id="prevBtn">
+        <button class="control-btn" onclick="previousTrack()">
             <i class="fas fa-step-backward"></i>
         </button>
-        <button class="control-btn play-btn" id="playBtn">
-            <i class="fas fa-play"></i>
+        <button class="control-btn play-btn" onclick="togglePlay()">
+            <i class="fas fa-play" id="playIcon"></i>
         </button>
-        <button class="control-btn" id="nextBtn">
+        <button class="control-btn" onclick="nextTrack()">
             <i class="fas fa-step-forward"></i>
         </button>
     </div>
+
     <div class="player-info">
         <div class="track-now-playing">
-            <span class="track-name">Не воспроизводится</span>
-            <span class="artist-name">Выберите трек</span>
+            <span class="track-name" id="currentTrackName">Выберите трек</span>
+            <span class="artist-name" id="currentArtistName">для воспроизведения</span>
         </div>
     </div>
+
     <div class="player-progress">
-        <div class="progress-bar">
-            <div class="progress"></div>
+        <div class="progress-bar" onclick="seek(event)">
+            <div class="progress" id="progressBar"></div>
         </div>
         <div class="time-display">
-            <span class="current-time">0:00</span>
-            <span class="total-time">0:00</span>
+            <span class="current-time" id="currentTime">0:00</span>
+            <span class="total-time" id="totalTime">0:00</span>
         </div>
     </div>
+
     <div class="player-options">
-        <button class="option-btn">
-            <i class="fas fa-volume-up"></i>
+        <button class="option-btn" onclick="toggleMute()">
+            <i class="fas fa-volume-up" id="volumeIcon"></i>
         </button>
-        <button class="option-btn">
-            <i class="fas fa-random"></i>
-        </button>
-        <button class="option-btn">
-            <i class="fas fa-redo"></i>
-        </button>
+        <input type="range" min="0" max="100" value="50" class="volume-slider" id="volumeSlider" onchange="setVolume(this.value)">
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Глобальные переменные плеера
+        let currentAudio = null;
+        let currentTrackId = null;
+        let isPlaying = false;
+        let currentTrackIndex = 0;
+        let tracks = [];
+
+        // Инициализация треков из страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            const trackCards = document.querySelectorAll('.track-card');
+            tracks = Array.from(trackCards).map(card => ({
+                id: card.dataset.trackId,
+                title: card.querySelector('.track-title').textContent,
+                artist: card.querySelector('.track-artist').textContent,
+                duration: parseInt(card.querySelector('.track-duration').textContent.replace(':', ''))
+            }));
+        });
+
+        // Воспроизведение трека
+        function playTrack(trackId, title, artist, duration) {
+            // Останавливаем текущее воспроизведение
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+
+            // Показываем плеер
+            document.getElementById('musicPlayer').style.display = 'flex';
+
+            // Обновляем информацию о треке
+            document.getElementById('currentTrackName').textContent = title;
+            document.getElementById('currentArtistName').textContent = artist;
+            document.getElementById('totalTime').textContent = formatTime(duration);
+
+            // Создаем новый аудио элемент
+            currentAudio = new Audio(`/Tracks/Stream/${trackId}`);
+            currentTrackId = trackId;
+
+            // Настройка событий аудио
+            currentAudio.addEventListener('loadedmetadata', function() {
+                document.getElementById('totalTime').textContent = formatTime(currentAudio.duration);
+            });
+
+            currentAudio.addEventListener('timeupdate', function() {
+                updateProgress();
+            });
+
+            currentAudio.addEventListener('ended', function() {
+                nextTrack();
+            });
+
+            // Начинаем воспроизведение
+            currentAudio.play();
+            isPlaying = true;
+            updatePlayButton();
+
+            // Логируем прослушивание
+            fetch(`/Tracks/RecordPlay/${trackId}`, { method: 'POST' });
+        }
+
+        // Управление воспроизведением
+        function togglePlay() {
+            if (!currentAudio) return;
+
+            if (isPlaying) {
+                currentAudio.pause();
+            } else {
+                currentAudio.play();
+            }
+            isPlaying = !isPlaying;
+            updatePlayButton();
+        }
+
+        function updatePlayButton() {
+            const playIcon = document.getElementById('playIcon');
+            if (isPlaying) {
+                playIcon.className = 'fas fa-pause';
+            } else {
+                playIcon.className = 'fas fa-play';
+            }
+        }
+
+        // Обновление прогресса
+        function updateProgress() {
+            if (!currentAudio) return;
+
+            const progress = (currentAudio.currentTime / currentAudio.duration) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('currentTime').textContent = formatTime(currentAudio.currentTime);
+        }
+
+        // Перемотка
+        function seek(event) {
+            if (!currentAudio) return;
+
+            const progressBar = event.currentTarget;
+            const rect = progressBar.getBoundingClientRect();
+            const percent = (event.clientX - rect.left) / rect.width;
+
+            currentAudio.currentTime = percent * currentAudio.duration;
+        }
+
+        // Управление громкостью
+        function setVolume(value) {
+            if (currentAudio) {
+                currentAudio.volume = value / 100;
+            }
+        }
+
+        function toggleMute() {
+            if (!currentAudio) return;
+
+            currentAudio.muted = !currentAudio.muted;
+            const volumeIcon = document.getElementById('volumeIcon');
+            volumeIcon.className = currentAudio.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+        }
+
+        // Навигация по трекам
+        function nextTrack() {
+            if (tracks.length === 0) return;
+
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            const track = tracks[currentTrackIndex];
+            playTrack(track.id, track.title, track.artist, track.duration);
+        }
+
+        function previousTrack() {
+            if (tracks.length === 0) return;
+
+            currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+            const track = tracks[currentTrackIndex];
+            playTrack(track.id, track.title, track.artist, track.duration);
+        }
+
+        // Вспомогательные функции
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Лайк трека
+        function likeTrack(trackId) {
+            // В будущем можно добавить функционал лайков
+            console.log('Liked track:', trackId);
+        }
+    </script>
+}

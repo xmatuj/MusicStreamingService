@@ -1,0 +1,68 @@
+﻿@model MusicStreamingService.Controllers.TrackCreateViewModel
+@{
+    ViewData["Title"] = "Добавить трек";
+}
+
+<div class="container">
+    <h2>Добавить новый трек</h2>
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data" class="mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Title" class="control-label">Название трека</label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="AudioFile" class="control-label">Аудиофайл</label>
+                    <input type="file" asp-for="AudioFile" class="form-control" accept="audio/*" />
+                    <span asp-validation-for="AudioFile" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Duration" class="control-label">Длительность (секунды)</label>
+                    <input asp-for="Duration" class="form-control" type="number" />
+                    <span asp-validation-for="Duration" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="ArtistId" class="control-label">Исполнитель</label>
+                    <select asp-for="ArtistId" class="form-control" asp-items="@(new SelectList(ViewBag.Artists, "Id", "Name"))">
+                        <option value="">-- Выберите исполнителя --</option>
+                    </select>
+                    <span asp-validation-for="ArtistId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="GenreId" class="control-label">Жанр</label>
+                    <select asp-for="GenreId" class="form-control" asp-items="@(new SelectList(ViewBag.Genres, "Id", "Name"))">
+                        <option value="">-- Выберите жанр --</option>
+                    </select>
+                    <span asp-validation-for="GenreId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="AlbumId" class="control-label">Альбом (опционально)</label>
+                    <select asp-for="AlbumId" class="form-control" asp-items="@(new SelectList(ViewBag.Albums, "Id", "Title"))">
+                        <option value="">-- Выберите альбом --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">Добавить трек</button>
+            <a href="/" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

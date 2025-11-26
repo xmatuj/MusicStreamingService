@@ -1,0 +1,66 @@
+﻿@model List<MusicStreamingService.Models.Moderation>
+@{
+    ViewData["Title"] = "История модераций";
+}
+
+<div class="container">
+    <h2>История модераций</h2>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Трек</th>
+                        <th>Модератор</th>
+                        <th>Статус</th>
+                        <th>Комментарий</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var moderation in Model)
+                    {
+                        <tr>
+                            <td>@moderation.ModerationDate.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>
+                                <strong>@moderation.Track?.Title</strong>
+                                <br>
+                                <small class="text-muted">@moderation.Track?.Artist?.Name</small>
+                            </td>
+                            <td>@moderation.Moderator?.Username</td>
+                            <td>
+                                @if (moderation.Status.ToString() == "Approved")
+                                {
+                                    <span class="badge bg-success">Одобрен</span>
+                                }
+                                else if (moderation.Status.ToString() == "Rejected")
+                                {
+                                    <span class="badge bg-danger">Отклонен</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">Ожидает</span>
+                                }
+                            </td>
+                            <td>@moderation.Comment</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h5>История модераций пуста</h5>
+            <p>Еще не было проведено ни одной модерации.</p>
+        </div>
+    }
+
+    <div class="mt-3">
+        <a href="/Moderation" class="btn btn-primary">К текущей модерации</a>
+        <a href="/Admin" class="btn btn-secondary">← В админку</a>
+    </div>
+</div>

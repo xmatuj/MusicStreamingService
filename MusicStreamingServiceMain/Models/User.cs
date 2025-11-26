@@ -28,6 +28,17 @@ namespace MusicStreamingService.Models
 
         public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
         public virtual ICollection<Playlist> Playlists { get; set; } = new List<Playlist>();
+
+        // Методы для работы с паролями
+        public void SetPassword(string password)
+        {
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
+        public bool VerifyPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, PasswordHash);
+        }
     }
 
     public enum UserRole
@@ -36,5 +47,11 @@ namespace MusicStreamingService.Models
         Subscriber,
         Musician,
         Admin
+    }
+
+    // Отдельный класс для системных ролей (не хранятся в БД)
+    public static class SystemRoles
+    {
+        public const string Guest = "Guest";
     }
 }

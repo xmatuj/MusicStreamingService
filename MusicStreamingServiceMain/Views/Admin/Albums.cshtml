@@ -1,0 +1,77 @@
+﻿@model List<MusicStreamingService.Models.Album>
+@{
+    ViewData["Title"] = "Управление альбомами";
+}
+
+<div class="container">
+    <h2>Управление альбомами</h2>
+
+    <!-- Форма добавления альбома -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Добавить новый альбом</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-action="CreateAlbum">
+                <div class="row">
+                    <div class="col-md-3">
+                        <input type="text" name="title" class="form-control" placeholder="Название альбома" required>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="artistId" class="form-control" required>
+                            <option value="">Выберите исполнителя</option>
+                            @foreach (var artist in ViewBag.Artists)
+                            {
+                                <option value="@artist.Id">@artist.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="releaseDate" class="form-control" placeholder="Дата выпуска">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary">Добавить альбом</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список альбомов -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Существующие альбомы</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="row">
+                    @foreach (var album in Model)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">@album.Title</h5>
+                                    <p class="card-text">
+                                        <strong>Исполнитель:</strong> @album.Artist?.Name<br>
+                                        <strong>Дата выпуска:</strong> @(album.ReleaseDate?.ToString("dd.MM.yyyy") ?? "Не указана")
+                                    </p>
+                                    <small class="text-muted">ID: @album.Id</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">Альбомы еще не добавлены</p>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/Admin" class="btn btn-secondary">← Назад в админку</a>
+        <a href="/Tracks/Create" class="btn btn-success">Добавить трек</a>
+    </div>
+</div>
