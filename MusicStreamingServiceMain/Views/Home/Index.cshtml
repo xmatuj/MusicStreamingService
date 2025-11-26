@@ -1,8 +1,141 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model MusicStreamingService.Controllers.HomeViewModel
+@{
+    ViewData["Title"] = "Музыкальный стриминговый сервис";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Музыкальный стриминговый сервис</h1>
-    <p>Скоро тут что-то будет :)</p>
+<div class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Слушайте музыку, которая вам нравится</h1>
+        <p class="hero-subtitle">Миллионы треков, персональные рекомендации и удобные плейлисты</p>
+        <div class="hero-actions">
+            <a href="#" class="btn btn-primary btn-lg">Начать слушать бесплатно</a>
+            <a href="#" class="btn btn-outline btn-lg">Узнать о подписке</a>
+        </div>
+    </div>
+</div>
+
+<div class="container main-content">
+    <!-- Поиск -->
+    <div class="search-section">
+        <form asp-controller="Search" asp-action="Index" method="get" class="search-form">
+            <div class="search-input-group">
+                <input type="text" name="query" class="search-input" placeholder="Исполнитель, трек или альбом" />
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Популярные треки -->
+    <section class="section">
+        <h2 class="section-title">Популярные треки</h2>
+        <div class="tracks-grid">
+            @foreach (var track in Model.PopularTracks)
+            {
+                <div class="track-card">
+                    <div class="track-image">
+                        <img src="https://via.placeholder.com/150" alt="@track.Title" />
+                        <button class="play-button">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                    <div class="track-info">
+                        <h3 class="track-title">@track.Title</h3>
+                        <p class="track-artist">@track.Artist?.Name</p>
+                        <p class="track-album">@track.Album?.Title</p>
+                    </div>
+                    <div class="track-actions">
+                        <span class="track-duration">@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</span>
+                        <button class="like-button">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Новые релизы -->
+    <section class="section">
+        <h2 class="section-title">Новые релизы</h2>
+        <div class="albums-grid">
+            @foreach (var album in Model.NewReleases)
+            {
+                <div class="album-card">
+                    <div class="album-image">
+                        <img src="https://via.placeholder.com/200" alt="@album.Title" />
+                        <button class="play-button">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                    <div class="album-info">
+                        <h3 class="album-title">@album.Title</h3>
+                        <p class="album-artist">@album.Artist?.Name</p>
+                        <p class="album-year">@album.ReleaseDate?.Year</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Избранные исполнители -->
+    <section class="section">
+        <h2 class="section-title">Избранные исполнители</h2>
+        <div class="artists-grid">
+            @foreach (var artist in Model.FeaturedArtists)
+            {
+                <div class="artist-card">
+                    <div class="artist-image">
+                        <img src="https://via.placeholder.com/150" alt="@artist.Name" />
+                    </div>
+                    <div class="artist-info">
+                        <h3 class="artist-name">@artist.Name</h3>
+                        <p class="artist-description">@(artist.Description?.Length > 100 ? artist.Description.Substring(0, 100) + "..." : artist.Description)</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+<!-- Музыкальный плеер -->
+<div class="music-player" id="musicPlayer">
+    <div class="player-controls">
+        <button class="control-btn" id="prevBtn">
+            <i class="fas fa-step-backward"></i>
+        </button>
+        <button class="control-btn play-btn" id="playBtn">
+            <i class="fas fa-play"></i>
+        </button>
+        <button class="control-btn" id="nextBtn">
+            <i class="fas fa-step-forward"></i>
+        </button>
+    </div>
+    <div class="player-info">
+        <div class="track-now-playing">
+            <span class="track-name">Не воспроизводится</span>
+            <span class="artist-name">Выберите трек</span>
+        </div>
+    </div>
+    <div class="player-progress">
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
+        <div class="time-display">
+            <span class="current-time">0:00</span>
+            <span class="total-time">0:00</span>
+        </div>
+    </div>
+    <div class="player-options">
+        <button class="option-btn">
+            <i class="fas fa-volume-up"></i>
+        </button>
+        <button class="option-btn">
+            <i class="fas fa-random"></i>
+        </button>
+        <button class="option-btn">
+            <i class="fas fa-redo"></i>
+        </button>
+    </div>
 </div>
