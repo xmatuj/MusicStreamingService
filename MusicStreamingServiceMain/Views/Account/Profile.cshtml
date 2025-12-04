@@ -1,0 +1,84 @@
+﻿@model MusicStreamingService.Models.User
+@{
+    ViewData["Title"] = "Мой профиль";
+}
+@if (Model.Role == MusicStreamingService.Models.UserRole.Musician)
+{
+    <div class="mt-3">
+        <a href="/Account/RequestMusicianStatus" class="btn btn-outline-info">
+            <i class="fas fa-music"></i> Статус музыканта
+        </a>
+    </div>
+}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Информация о профиле</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user fa-4x"></i>
+                        </div>
+                        <h5 class="mt-2">@Model.Username</h5>
+                        <span class="badge bg-info">@Model.Role</span>
+                    </div>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <i class="fas fa-envelope me-2"></i> @Model.Email
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-calendar me-2"></i> Зарегистрирован: @Model.DateOfCreated.ToString("dd.MM.yyyy")
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-play-circle me-2"></i> Плейлистов: @Model.Playlists.Count
+                        </li>
+                        @if (Model.Subscriptions.Any(s => s.IsActivated && s.EndDate > DateTime.Now))
+                        {
+                            <li class="list-group-item">
+                                <i class="fas fa-crown me-2"></i> Активная подписка
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Мои плейлисты</h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.Playlists.Any())
+                    {
+                        <div class="row">
+                            @foreach (var playlist in Model.Playlists)
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">@playlist.Title</h5>
+                                            <p class="card-text">
+                                                <small class="text-muted">Создан: @playlist.DateOfCreated.ToString("dd.MM.yyyy")</small>
+                                            </p>
+                                            <a href="#" class="btn btn-outline-primary btn-sm">Открыть</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">У вас еще нет плейлистов</p>
+                        <a href="#" class="btn btn-primary">Создать первый плейлист</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

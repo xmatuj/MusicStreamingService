@@ -1,0 +1,55 @@
+﻿@model MusicStreamingService.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Вход в систему</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Login" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+                        <div class="form-group mb-3">
+                            <label asp-for="UsernameOrEmail" class="form-label"></label>
+                            <input asp-for="UsernameOrEmail" class="form-control" placeholder="Имя пользователя или email" />
+                            <span asp-validation-for="UsernameOrEmail" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control" type="password" placeholder="Пароль" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label">
+                                Запомнить меня
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">Войти</button>
+                        </div>
+
+                        <div class="text-center">
+                            <a href="/Account/Register" class="btn btn-link">Нет аккаунта? Зарегистрироваться</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

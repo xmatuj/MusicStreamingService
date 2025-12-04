@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MusicStreamingService.Data;
 using MusicStreamingService.Models;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MusicStreamingService.Controllers
 {
