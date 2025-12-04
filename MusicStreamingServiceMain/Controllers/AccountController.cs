@@ -48,12 +48,12 @@ namespace MusicStreamingService.Controllers
                         return View(model);
                     }
 
-                    // Создаем нового пользователя
+                    // Создаем нового пользователя (всегда как обычный User)
                     var user = new User
                     {
                         Username = model.Username,
                         Email = model.Email,
-                        Role = model.RegisterAsMusician ? UserRole.Musician : UserRole.User
+                        Role = UserRole.User // Всегда обычный пользователь
                     };
 
                     user.SetPassword(model.Password);

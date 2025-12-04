@@ -40,6 +40,11 @@ namespace MusicStreamingService.Models
         {
             return BCrypt.Net.BCrypt.Verify(password, PasswordHash);
         }
+
+        // Свойство для проверки может ли пользователь добавлять треки
+        public bool CanUploadTracks =>
+            Role == UserRole.Admin ||
+            Role == UserRole.Musician;
     }
 
     public enum UserRole
@@ -50,7 +55,7 @@ namespace MusicStreamingService.Models
         Admin
     }
 
-    // Модель для регистрации
+    // Модель для регистрации (убрали пункт музыканта)
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "Имя пользователя обязательно")]
@@ -73,9 +78,6 @@ namespace MusicStreamingService.Models
         [Display(Name = "Подтвердите пароль")]
         [Compare("Password", ErrorMessage = "Пароли не совпадают")]
         public string ConfirmPassword { get; set; } = string.Empty;
-
-        [Display(Name = "Зарегистрироваться как музыкант")]
-        public bool RegisterAsMusician { get; set; } = false;
     }
 
     // Модель для входа

@@ -33,6 +33,22 @@ namespace MusicStreamingService.Controllers
         // GET: Страница добавления трека
         public async Task<IActionResult> Create()
         {
+            // Проверяем авторизацию
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Проверяем может ли пользователь добавлять треки
+            var username = User.Identity.Name;
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (user == null || !user.CanUploadTracks)
+            {
+                TempData["ErrorMessage"] = "У вас нет прав для добавления треков. Только музыканты и администраторы могут загружать треки.";
+                return RedirectToAction("Profile", "Account");
+            }
+
             ViewBag.Artists = await _context.Artists.ToListAsync();
             ViewBag.Genres = await _context.Genres.ToListAsync();
             ViewBag.Albums = await _context.Albums.ToListAsync();
