@@ -117,6 +117,13 @@ namespace MusicStreamingService.Controllers
             if (track == null)
                 return NotFound();
 
+            // Проверяем авторизацию и возможность добавления в плейлисты
+            var user = await GetCurrentUserAsync();
+            ViewBag.CanAddToPlaylists = user != null &&
+                (user.Role == UserRole.Admin ||
+                 user.Role == UserRole.Musician ||
+                 user.Role == UserRole.Subscriber);
+
             // Логируем прослушивание
             var stat = new TrackStatistics
             {
@@ -127,6 +134,17 @@ namespace MusicStreamingService.Controllers
             await _context.SaveChangesAsync();
 
             return View(track);
+        }
+
+        private async Task<User?> GetCurrentUserAsync()
+        {
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username))
+                return null;
+
+            return await _context.Users
+                .Include(u => u.Subscriptions)
+                .FirstOrDefaultAsync(u => u.Username == username);
         }
 
         // Потоковая передача аудио

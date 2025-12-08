@@ -47,6 +47,14 @@
                     </div>
                     <div class="track-actions">
                         <span class="track-duration">@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</span>
+
+                        <!-- Кнопка добавления в плейлист -->
+                        <button class="add-to-playlist-btn"
+                                data-track-id="@track.Id"
+                                title="Добавить в плейлист">
+                            <i class="fas fa-plus"></i>
+                        </button>
+
                         <button class="like-button" onclick="likeTrack(@track.Id)">
                             <i class="far fa-heart"></i>
                         </button>
@@ -131,12 +139,37 @@
     </div>
 
     <div class="player-options">
+        <button class="option-btn" onclick="addCurrentTrackToPlaylist()" title="Добавить в плейлист" id="addToPlaylistBtn">
+            <i class="fas fa-plus"></i>
+        </button>
+
         <button class="option-btn" onclick="toggleMute()">
             <i class="fas fa-volume-up" id="volumeIcon"></i>
         </button>
         <input type="range" min="0" max="100" value="50" class="volume-slider" id="volumeSlider" onchange="setVolume(this.value)">
     </div>
-</div>
+
+
+<style>
+    .add-to-playlist-btn {
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        padding: 5px;
+        transition: color 0.2s;
+    }
+
+        .add-to-playlist-btn:hover {
+            color: #007bff;
+        }
+
+    .track-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+</style>
 
 @section Scripts {
     <script>
@@ -146,6 +179,7 @@
         let isPlaying = false;
         let currentTrackIndex = 0;
         let tracks = [];
+        let currentPlayingTrackId = null;
 
         // Инициализация треков из страницы
         document.addEventListener('DOMContentLoaded', function() {
@@ -160,6 +194,11 @@
 
         // Воспроизведение трека
         function playTrack(trackId, title, artist, duration) {
+            
+            // currentPlayingTrackId = trackId;
+            
+            // updateAddToPlaylistButton(trackId);
+            
             // Останавливаем текущее воспроизведение
             if (currentAudio) {
                 currentAudio.pause();
@@ -285,5 +324,85 @@
             // В будущем можно добавить функционал лайков
             console.log('Liked track:', trackId);
         }
+            // Функция добавления трека в плейлист
+        function addToPlaylist(trackId) {
+            // Проверяем авторизацию
+            if (!isUserAuthenticated()) {
+                alert('Для добавления треков в плейлисты необходимо войти в систему');
+                window.location.href = '/Account/Login';
+                return;
+            }
+
+            // Открываем модальное окно
+            if (typeof openAddToPlaylistModal === 'function') {
+                openAddToPlaylistModal(trackId);
+            }
+        }
+
+        // Проверка авторизации пользователя
+        function isUserAuthenticated() {
+            // Простая проверка наличия куки или другого признака авторизации
+            return document.cookie.includes('.AspNetCore.Cookies');
+        }
+
+            // Добавление текущего трека в плейлист
+        function addCurrentTrackToPlaylist() {
+            if (!currentTrackId) {
+                alert('Сначала выберите трек для воспроизведения');
+                return;
+            }
+
+            addToPlaylist(currentTrackId);
+        }
+
+                // Обновление кнопки добавления в плейлист
+            function updateAddToPlaylistButton(trackId) {
+                const addBtn = document.getElementById('addToPlaylistBtn');
+                if (addBtn) {
+                    addBtn.dataset.trackId = trackId;
+                    addBtn.title = `Добавить "${title}" в плейлист`;
+                    addBtn.style.display = 'flex';
+                }
+            }
+
+            // Добавление текущего трека в плейлист
+            function addCurrentTrackToPlaylist() {
+                if (!currentPlayingTrackId) {
+                    showToast('Сначала выберите трек для воспроизведения', 'error');
+                    return;
+                }
+
+                // Используем глобальную функцию из playlists.js
+                if (typeof window.addToPlaylist === 'function') {
+                    window.addToPlaylist(currentPlayingTrackId);
+                } else {
+                    // Если playlists.js еще не загружен, открываем модальное окно напрямую
+                    openAddToPlaylistModal(currentPlayingTrackId);
+                }
+            }
+
+            // Функция открытия модального окна (если playlists.js не загружен)
+            function openAddToPlaylistModal(trackId) {
+                // Проверяем авторизацию
+                if (!isUserAuthenticated()) {
+                    alert('Для добавления треков в плейлисты необходимо войти в систему');
+                    window.location.href = '/Account/Login';
+                    return;
+                }
+
+                // Открываем модальное окно
+                fetch(`/Playlists/AddToPlaylistModal?trackId=${trackId}`)
+                    .then(response => response.text())
+                    .then(html => {
+                        // Создаем модальное окно
+                        const modalContainer = document.createElement('div');
+                        modalContainer.innerHTML = html;
+                        document.body.appendChild(modalContainer.firstElementChild);
+
+                        // Инициализируем и показываем модальное окно
+                        const modal = new bootstrap.Modal(document.getElementById('addToPlaylistModal'));
+                        modal.show();
+                    });
+            }
     </script>
 }

@@ -46,7 +46,8 @@ namespace MusicStreamingService.Data
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Playlists)
                 .WithOne(p => p.User)
-                .HasForeignKey(p => p.UserId);
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Artist>()
                 .HasMany(a => a.Albums)
@@ -58,6 +59,19 @@ namespace MusicStreamingService.Data
                 .WithMany(a => a.Tracks)
                 .HasForeignKey(t => t.ArtistId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Настройка для PlaylistTrack
+            modelBuilder.Entity<PlaylistTrack>()
+                .HasOne(pt => pt.Playlist)
+                .WithMany(p => p.PlaylistTracks)
+                .HasForeignKey(pt => pt.PlaylistId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PlaylistTrack>()
+                .HasOne(pt => pt.Track)
+                .WithMany(t => t.PlaylistTracks)
+                .HasForeignKey(pt => pt.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

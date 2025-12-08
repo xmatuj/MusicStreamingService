@@ -850,3 +850,118 @@ body {
     font-size: 0.8rem;
     color: #888;
 }
+/* Стили для кнопок добавления в плейлист */
+.add-to-playlist-btn {
+    background: transparent;
+    border: 1px solid #dee2e6;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+    .add-to-playlist-btn:hover {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+        transform: scale(1.1);
+    }
+
+    .add-to-playlist-btn:active {
+        transform: scale(0.95);
+    }
+
+/* Кнопка в плеере */
+.player-options .option-btn.add-playlist-btn {
+    background: #28a745;
+    color: white;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .player-options .option-btn.add-playlist-btn:hover {
+        background: #218838;
+        transform: scale(1.1);
+    }
+
+/* Стили для модального окна плейлистов */
+#addToPlaylistModal .playlist-item {
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+    #addToPlaylistModal .playlist-item:hover {
+        background-color: #f8f9fa;
+        border-left-color: #007bff;
+    }
+
+    #addToPlaylistModal .playlist-item.active {
+        background-color: #e7f1ff;
+        border-left-color: #007bff;
+    }
+
+/* Анимации */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.playlist-card-small {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .add-to-playlist-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+
+    .player-options .option-btn {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* Стили для индикатора загрузки */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

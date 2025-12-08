@@ -1,0 +1,317 @@
+﻿@model MusicStreamingService.Models.Playlist
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container">
+    <!-- Заголовок плейлиста -->
+    <div class="playlist-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <div class="playlist-cover-large">
+                    @if (Model.PlaylistTracks.Any())
+                    {
+                        <div class="cover-image-large" style="background-color: #6c757d; height: 200px;">
+                            <i class="fas fa-music fa-5x text-white"></i>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="cover-image-large empty-cover" style="background-color: #e9ecef; height: 200px;">
+                            <i class="fas fa-music fa-5x text-secondary"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="playlist-info">
+                    <span class="badge @(Model.Visibility == MusicStreamingService.Models.PlaylistVisibility.Public ? "bg-success" : "bg-secondary") mb-2">
+                        @Model.Visibility
+                    </span>
+                    <h1 class="display-6">@Model.Title</h1>
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p class="lead">@Model.Description</p>
+                    }
+                    <div class="playlist-meta">
+                        <span class="me-3">
+                            <i class="fas fa-user me-1"></i> @Model.User.Username
+                        </span>
+                        <span class="me-3">
+                            <i class="fas fa-music me-1"></i> @Model.TrackCount треков
+                        </span>
+                        <span class="me-3">
+                            <i class="fas fa-clock me-1"></i> @TimeSpan.FromSeconds(Model.TotalDuration).ToString(@"hh\:mm\:ss")
+                        </span>
+                        <span>
+                            <i class="fas fa-calendar me-1"></i> @Model.CreatedDate.ToString("dd.MM.yyyy")
+                        </span>
+                    </div>
+                    <div class="playlist-actions mt-3">
+                        <button class="btn btn-primary btn-lg me-2">
+                            <i class="fas fa-play me-1"></i> Слушать
+                        </button>
+                        @if (User.Identity?.Name == Model.User.Username)
+                        {
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-lg me-2">
+                                <i class="fas fa-edit me-1"></i> Редактировать
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" 
+                                  onsubmit="return confirm('Удалить плейлист?');" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger btn-lg">
+                                    <i class="fas fa-trash me-1"></i> Удалить
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список треков -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list-music me-2"></i> Треки в плейлисте
+                <span class="badge bg-secondary ms-2">@Model.TrackCount</span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.PlaylistTracks.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="playlistTracksTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Название</th>
+                                <th>Исполнитель</th>
+                                <th>Альбом</th>
+                                <th style="width: 100px;">Длительность</th>
+                                <th style="width: 100px;">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playlistTracksBody">
+                            @foreach (var playlistTrack in Model.PlaylistTracks.OrderBy(pt => pt.Position))
+                            {
+                                var track = playlistTrack.Track;
+                                <tr data-track-id="@track.Id">
+                                    <td class="position-cell">
+                                        <i class="fas fa-grip-vertical text-muted handle" style="cursor: move;"></i>
+                                        <span class="position-number ms-2">@(playlistTrack.Position + 1)</span>
+                                    </td>
+                                    <td>
+                                        <a href="/Tracks/Play/@track.Id" class="text-decoration-none">
+                                            <strong>@track.Title</strong>
+                                        </a>
+                                    </td>
+                                    <td>@track.Artist?.Name</td>
+                                    <td>@track.Album?.Title</td>
+                                    <td>@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</td>
+                                    <td>
+                                        <form method="post"
+                                              action="/Playlists/RemoveTrack"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Удалить этот трек из плейлиста?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="playlistId" value="@Model.Id" />
+                                            <input type="hidden" name="trackId" value="@track.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Удалить из плейлиста">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-music fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Плейлист пуст</h5>
+                    <p class="text-muted">Добавьте треки в этот плейлист</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад к моим плейлистам
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <style>
+        .playlist-cover-large {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .cover-image-large {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .playlist-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+        
+        .playlist-info {
+            color: white;
+        }
+        
+        .playlist-meta {
+            opacity: 0.9;
+        }
+        
+        .handle {
+            cursor: move;
+        }
+        
+        .position-cell {
+            min-width: 60px;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #e9ecef;
+        }
+        
+        .sortable-chosen {
+            background-color: #f8f9fa;
+        }
+    </style>
+    
+    <script>
+        // Drag & Drop для изменения порядка треков
+        document.addEventListener('DOMContentLoaded', function() {
+            const playlistId = @Model.Id;
+            const tbody = document.getElementById('playlistTracksBody');
+            
+            if (tbody) {
+                const sortable = Sortable.create(tbody, {
+                    handle: '.handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    
+                    onEnd: function(evt) {
+                        // Обновляем номера позиций
+                        updatePositionNumbers();
+                        
+                        // Сохраняем новый порядок на сервере
+                        saveNewOrder();
+                    }
+                });
+            }
+            
+            // Обновление номеров позиций
+            function updatePositionNumbers() {
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach((row, index) => {
+                    const positionNumber = row.querySelector('.position-number');
+                    if (positionNumber) {
+                        positionNumber.textContent = index + 1;
+                    }
+                });
+            }
+            
+            // Сохранение нового порядка на сервере
+            function saveNewOrder() {
+                const trackIds = Array.from(tbody.querySelectorAll('tr'))
+                    .map(row => parseInt(row.dataset.trackId));
+                
+                fetch('/Playlists/Reorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        playlistId: playlistId,
+                        trackIds: trackIds
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Ошибка при сохранении порядка:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+            }
+            
+            // Удаление трека из плейлиста
+            document.querySelectorAll('.remove-track-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const playlistId = this.dataset.playlistId;
+                    const trackId = this.dataset.trackId;
+                    const trackRow = this.closest('tr');
+                    
+                    if (confirm('Удалить этот трек из плейлиста?')) {
+                        fetch('/Playlists/RemoveTrack', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: JSON.stringify({
+                                playlistId: playlistId,
+                                trackId: trackId
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                trackRow.remove();
+                                updatePositionNumbers();
+                                
+                                // Показываем сообщение об успехе
+                                showToast('Трек удален из плейлиста', 'success');
+                                
+                                // Обновляем счетчик треков
+                                const badge = document.querySelector('.badge.bg-secondary');
+                                if (badge) {
+                                    const currentCount = parseInt(badge.textContent);
+                                    badge.textContent = currentCount - 1;
+                                }
+                            } else {
+                                showToast(data.message, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Ошибка:', error);
+                            showToast('Произошла ошибка при удалении трека', 'error');
+                        });
+                    }
+                });
+            });
+            
+            // Функция для показа уведомлений
+            function showToast(message, type) {
+                // Простая реализация уведомления
+                alert(message);
+            }
+        });
+    </script>
+}

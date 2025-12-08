@@ -1,0 +1,59 @@
+﻿@model MusicStreamingService.Models.PlaylistEditViewModel
+@{
+    ViewData["Title"] = "Редактирование плейлиста";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center mb-0">Редактирование плейлиста</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="form-label">Название плейлиста *</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="form-label">Описание</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="Visibility" class="form-label">Видимость плейлиста</label>
+                            <select asp-for="Visibility" class="form-control">
+                                <option value="@MusicStreamingService.Models.PlaylistVisibility.Private">Приватный (только я)</option>
+                                <option value="@MusicStreamingService.Models.PlaylistVisibility.Public">Публичный (видят все)</option>
+                                <option value="@MusicStreamingService.Models.PlaylistVisibility.Unlisted">Скрытый (только по ссылке)</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                Приватные плейлисты видны только вам. Публичные видны всем пользователям.
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary me-md-2">Отмена</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

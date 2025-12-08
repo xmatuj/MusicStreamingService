@@ -69,4 +69,22 @@ app.MapControllerRoute(
     name: "tracks",
     pattern: "Tracks/{action=Index}/{id?}");
 
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"=== Request: {context.Request.Path}");
+    Console.WriteLine($"User authenticated: {context.User.Identity?.IsAuthenticated}");
+    Console.WriteLine($"User name: {context.User.Identity?.Name}");
+
+    if (context.User.Identity?.IsAuthenticated == true)
+    {
+        Console.WriteLine($"Claims:");
+        foreach (var claim in context.User.Claims)
+        {
+            Console.WriteLine($"  {claim.Type}: {claim.Value}");
+        }
+    }
+
+    await next();
+});
+
 app.Run();
