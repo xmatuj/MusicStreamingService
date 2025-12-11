@@ -1,0 +1,202 @@
+﻿@model MusicStreamingService.Controllers.SearchViewModel
+@{
+    ViewData["Title"] = $"Результаты поиска: {Model.Query}";
+}
+
+<div class="container">
+    <h2 class="mb-4">Результаты поиска: "<span class="text-primary">@Model.Query</span>"</h2>
+
+    @if (Model.TotalResults == 0)
+    {
+        <div class="alert alert-info">
+            <h5>Ничего не найдено</h5>
+            <p>По запросу "<strong>@Model.Query</strong>" ничего не найдено.</p>
+            <p>Попробуйте изменить запрос или искать по:</p>
+            <ul>
+                <li>Названию трека</li>
+                <li>Имени исполнителя</li>
+                <li>Названию альбома</li>
+            </ul>
+            <a href="/" class="btn btn-primary mt-2">Вернуться на главную</a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-light mb-4">
+            Найдено результатов: <strong>@Model.TotalResults</strong>
+        </div>
+
+        @if (Model.Tracks.Any())
+        {
+            <div class="mb-5">
+                <h4 class="mb-3">Треки (@Model.Tracks.Count)</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Исполнитель</th>
+                                <th>Альбом</th>
+                                <th>Длительность</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var track in Model.Tracks)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@track.Title</strong>
+                                    </td>
+                                    <td>@track.Artist?.Name</td>
+                                    <td>@track.Album?.Title</td>
+                                    <td>@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</td>
+                                    <td>
+                                        <a href="/Tracks/Play/@track.Id" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-play"></i> Слушать
+                                        </a>
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary add-to-playlist-btn"
+                                                    data-track-id="@track.Id">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        @if (Model.Artists.Any())
+        {
+            <div class="mb-5">
+                <h4 class="mb-3">Исполнители (@Model.Artists.Count)</h4>
+                <div class="row">
+                    @foreach (var artist in Model.Artists)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <div class="artist-circle mb-3">
+                                        <i class="fas fa-user fa-2x"></i>
+                                    </div>
+                                    <h5>@artist.Name</h5>
+                                    @if (!string.IsNullOrEmpty(artist.Description))
+                                    {
+                                        <p class="text-muted small">
+                                            @(artist.Description.Length > 100 ?
+                                                                        artist.Description.Substring(0, 100) + "..." :
+                                                                        artist.Description)
+                                        </p>
+                                    }
+                                    <a href="#" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-music"></i> Треки исполнителя
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (Model.Albums.Any())
+        {
+            <div class="mb-5">
+                <h4 class="mb-3">Альбомы (@Model.Albums.Count)</h4>
+                <div class="row">
+                    @foreach (var album in Model.Albums)
+                    {
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <div class="album-cover">
+                                    <div class="cover-image">
+                                        <i class="fas fa-compact-disc fa-3x"></i>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title">@album.Title</h6>
+                                    <p class="card-text small text-muted">
+                                        @album.Artist?.Name<br>
+                                        @album.ReleaseDate?.Year
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-outline-primary w-100">
+                                        Открыть
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    <div class="mt-4">
+        <a href="/" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> На главную
+        </a>
+    </div>
+</div>
+
+<style>
+    .artist-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .album-cover {
+        height: 120px;
+        background-color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .cover-image {
+        text-align: center;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Обработка кнопок добавления в плейлист
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.add-to-playlist-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const trackId = this.dataset.trackId;
+
+                    if (typeof window.addToPlaylist === 'function') {
+                        window.addToPlaylist(trackId);
+                    } else {
+                        // Если функция не загружена, делаем простой редирект
+                        fetch(`/Playlists/AddToPlaylistModal?trackId=${trackId}`)
+                            .then(r => r.text())
+                            .then(html => {
+                                const div = document.createElement('div');
+                                div.innerHTML = html;
+                                document.body.appendChild(div.firstElementChild);
+
+                                const modal = new bootstrap.Modal(
+                                    document.getElementById('addToPlaylistModal')
+                                );
+                                modal.show();
+                            });
+                    }
+                });
+            });
+        });
+    </script>
+}

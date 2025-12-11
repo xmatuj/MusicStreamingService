@@ -34,6 +34,13 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Панель управления</a>
                             </li>
                         }
+                        <li class="nav-item">
+                            <form class="d-flex" asp-controller="Search" asp-action="Index" method="get">
+                                <input class="form-control me-2" type="search" name="query"
+                                       placeholder="Поиск..." aria-label="Поиск">
+                                <button class="btn btn-outline-success" type="submit">Поиск</button>
+                            </form>
+                        </li>
                     </ul>
             <ul class="navbar-nav">
                 @if (User.Identity.IsAuthenticated)

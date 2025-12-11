@@ -69,6 +69,11 @@ app.MapControllerRoute(
     name: "tracks",
     pattern: "Tracks/{action=Index}/{id?}");
 
+app.MapControllerRoute(
+    name: "search",
+    pattern: "Search/{action=Index}/{id?}",
+    defaults: new { controller = "Search" });
+
 app.Use(async (context, next) =>
 {
     Console.WriteLine($"=== Request: {context.Request.Path}");

@@ -19,7 +19,10 @@
     <div class="search-section">
         <form asp-controller="Search" asp-action="Index" method="get" class="search-form">
             <div class="search-input-group">
-                <input type="text" name="query" class="search-input" placeholder="Исполнитель, трек или альбом" />
+                <input type="text" name="query" class="search-input"
+                       placeholder="Исполнитель, трек или альбом"
+                       required
+                       value="@ViewBag.SearchQuery" />
                 <button type="submit" class="search-button">
                     <i class="fas fa-search"></i>
                 </button>
