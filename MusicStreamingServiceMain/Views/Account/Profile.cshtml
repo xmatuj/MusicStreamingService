@@ -55,7 +55,7 @@
                                     </ul>
                                     <div class="text-center">
                                         <p class="h3 mb-2">₽399 <span class="text-muted small">/месяц</span></p>
-                                        <a href="#" class="btn btn-primary w-100">
+                                        <a href="/Subscription/Plans" class="btn btn-primary w-100">
                                             <i class="fas fa-crown me-1"></i> Оформить подписку
                                         </a>
                                     </div>
@@ -140,9 +140,9 @@
                         </div>
 
                         <div class="detail-item">
-                            <i class="fas fa-crown me-2 text-primary"></i>
-                            <span class="detail-label">Подписки:</span>
-                            @if (Model.Subscriptions.Any(s => s.IsActivated && s.EndDate > DateTime.Now))
+                            <i class="fas fa-crown me-2 text-warning"></i>
+                            <span class="detail-label">Статус подписки:</span>
+                            @if (Model.HasActiveSubscription)
                             {
                                 <span class="detail-value text-success">
                                     <i class="fas fa-check"></i> Активна
@@ -150,8 +150,8 @@
                             }
                             else
                             {
-                                <span class="detail-value text-secondary">
-                                    <i class="fas fa-times"></i> Нет активной
+                                <span class="detail-value">
+                                    <a href="/Subscription/Plans" class="text-primary">Оформить</a>
                                 </span>
                             }
                         </div>
@@ -159,6 +159,20 @@
 
                     <!-- Быстрые действия -->
                     <div class="mt-4">
+                        <!-- Кнопка подписки -->
+                        @if (Model.HasActiveSubscription)
+                        {
+                            <a href="/Subscription/My" class="btn btn-warning w-100 mb-2">
+                                <i class="fas fa-crown me-1"></i> Моя подписка (активна до @Model.Subscriptions.First(s => s.IsActivated && s.EndDate > DateTime.Now).EndDate.ToString("dd.MM.yyyy"))
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="/Subscription/Plans" class="btn btn-warning w-100 mb-2">
+                                <i class="fas fa-crown me-1"></i> Оформить подписку
+                            </a>
+                        }
+
                         @if (Model.CanUploadTracks)
                         {
                             <a href="/Tracks/Create" class="btn btn-success w-100 mb-2">
@@ -299,7 +313,15 @@
                     }
                 </div>
             </div>
-
+            <!-- Бейдж подписки -->
+            @if (Model.HasActiveSubscription)
+            {
+                <div class="mt-2">
+                    <span class="badge bg-warning">
+                        <i class="fas fa-crown me-1"></i> Премиум подписчик
+                    </span>
+                </div>
+            }
             <!-- Недавно прослушанные треки -->
             <div class="card mb-4">
                 <div class="card-header bg-warning text-dark">

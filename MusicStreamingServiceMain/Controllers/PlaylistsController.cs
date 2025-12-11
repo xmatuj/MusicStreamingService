@@ -24,7 +24,6 @@ namespace MusicStreamingService.Controllers
         {
             return user.Role == UserRole.Admin ||
                    user.Role == UserRole.Musician ||
-                   user.Role == UserRole.Subscriber ||
                    (user.Subscriptions != null && user.Subscriptions.Any(s => s.IsActivated && s.EndDate > DateTime.Now));
         }
 

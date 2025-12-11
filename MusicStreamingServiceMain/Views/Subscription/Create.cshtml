@@ -1,0 +1,129 @@
+﻿@model MusicStreamingService.Models.SubscriptionViewModel
+@{
+    ViewData["Title"] = "Оформление подписки";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-crown me-2"></i> Оформление подписки</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Информация о заказе -->
+                    <div class="alert alert-info mb-4">
+                        <h5><i class="fas fa-info-circle me-2"></i> Информация о заказе</h5>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <p><strong>План:</strong> @Model.PlanName</p>
+                                <p><strong>Период:</strong> @Model.Period</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h4>₽@Model.Amount</h4>
+                                <small class="text-muted">Ежемесячная оплата</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Данные карты -->
+                        <h5 class="mb-3"><i class="fas fa-credit-card me-2"></i> Данные карты</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label asp-for="CardName" class="form-label"></label>
+                                <input asp-for="CardName" class="form-control" placeholder="IVAN IVANOV" />
+                                <span asp-validation-for="CardName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label asp-for="CardNumber" class="form-label"></label>
+                                <div class="input-group">
+                                    <input asp-for="CardNumber" class="form-control" placeholder="2200 0000 0000 0004" />
+                                    <span class="input-group-text">
+                                        <i class="fab fa-cc-visa me-1"></i>
+                                        <i class="fab fa-cc-mastercard me-1"></i>
+                                        <i class="fab fa-cc-mir"></i>
+                                    </span>
+                                </div>
+                                <span asp-validation-for="CardNumber" class="text-danger"></span>
+                                <small class="text-muted">Для тестового платежа используйте карту: 2200 0000 0000 0004</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="ExpiryDate" class="form-label"></label>
+                                <input asp-for="ExpiryDate" class="form-control" placeholder="ММ/ГГ" />
+                                <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="CVV" class="form-label"></label>
+                                <input asp-for="CVV" class="form-control" placeholder="123" type="password" />
+                                <span asp-validation-for="CVV" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Соглашение -->
+                        <div class="form-check mb-4">
+                            <input asp-for="AgreeToTerms" class="form-check-input" />
+                            <label asp-for="AgreeToTerms" class="form-check-label">
+                                Я согласен с <a href="/Subscription/Terms" target="_blank">условиями подписки</a>
+                            </label>
+                            <span asp-validation-for="AgreeToTerms" class="text-danger"></span>
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <a href="/Subscription/Plans" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Назад к планам
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-lock me-1"></i> Оплатить ₽@Model.Amount
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Информация о безопасной оплате -->
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-lock me-1"></i> Безопасная оплата через Сбербанк
+                                <br>
+                                <i class="fas fa-shield-alt me-1"></i> Ваши данные защищены
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Форматирование номера карты
+        document.getElementById('CardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formatted = value.replace(/(\d{4})/g, '$1 ').trim();
+            e.target.value = formatted;
+        });
+
+        // Форматирование срока действия
+        document.getElementById('ExpiryDate').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            if (value.length >= 2) {
+                e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+        });
+    </script>
+}

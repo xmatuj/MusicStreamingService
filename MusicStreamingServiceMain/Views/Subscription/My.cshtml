@@ -1,0 +1,92 @@
+﻿@model List<MusicStreamingService.Models.Subscription>
+@{
+    ViewData["Title"] = "Мои подписки";
+}
+
+<div class="container py-5">
+    <h1 class="mb-4"><i class="fas fa-history me-2"></i> Мои подписки</h1>
+
+    @if (ViewBag.ActiveSubscription != null)
+    {
+        <div class="alert alert-success mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1"><i class="fas fa-crown me-2"></i> Активная подписка</h5>
+                    <p class="mb-0">
+                        Действует до @(((MusicStreamingService.Models.Subscription)ViewBag.ActiveSubscription).EndDate.ToString("dd.MM.yyyy"))
+                    </p>
+                </div>
+                <span class="badge bg-success fs-6">Активна</span>
+            </div>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Дата оформления</th>
+                                <th>Окончание</th>
+                                <th>Сумма</th>
+                                <th>Статус</th>
+                                <th>Транзакция</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var subscription in Model)
+                            {
+                                <tr>
+                                    <td>@subscription.Id</td>
+                                    <td>@subscription.StartDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>@subscription.EndDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>₽@subscription.Amount</td>
+                                    <td>
+                                        @if (subscription.IsActivated && subscription.EndDate > DateTime.Now)
+                                        {
+                                            <span class="badge bg-success">Активна</span>
+                                        }
+                                        else if (subscription.EndDate <= DateTime.Now)
+                                        {
+                                            <span class="badge bg-secondary">Истекла</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">Неактивна</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@subscription.TransactionId</small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h5><i class="fas fa-info-circle me-2"></i> У вас еще нет подписок</h5>
+            <p>Оформите подписку, чтобы получить доступ ко всем функциям сервиса.</p>
+            <a href="/Subscription/Plans" class="btn btn-primary mt-2">
+                <i class="fas fa-crown me-2"></i> Выбрать план
+            </a>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a href="/Subscription/Plans" class="btn btn-outline-primary me-2">
+            <i class="fas fa-crown me-1"></i> Оформить новую подписку
+        </a>
+        <a href="/Account/Profile" class="btn btn-secondary">
+            <i class="fas fa-user me-1"></i> Назад в профиль
+        </a>
+    </div>
+</div>

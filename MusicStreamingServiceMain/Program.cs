@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using MusicStreamingService.Controllers;
 using MusicStreamingService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -91,5 +92,18 @@ app.Use(async (context, next) =>
 
     await next();
 });
+
+// Фоновая задача для проверки подписок
+var subscriptionTimer = new System.Timers.Timer(TimeSpan.FromHours(1).TotalMilliseconds);
+subscriptionTimer.Elapsed += async (sender, e) =>
+{
+    using var scope = app.Services.CreateScope();
+    await SubscriptionController.CheckExpiredSubscriptions(scope.ServiceProvider);
+};
+subscriptionTimer.Start();
+
+// Убираем подписку при остановке приложения
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+lifetime.ApplicationStopping.Register(() => subscriptionTimer.Stop());
 
 app.Run();

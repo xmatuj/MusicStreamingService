@@ -45,6 +45,11 @@ namespace MusicStreamingService.Models
         public bool CanUploadTracks =>
             Role == UserRole.Admin ||
             Role == UserRole.Musician;
+
+        // Свойство для проверки активной подписки
+        [NotMapped]
+        public bool HasActiveSubscription =>
+            Subscriptions?.Any(s => s.IsActivated && s.EndDate > DateTime.Now) == true;
     }
 
     public enum UserRole

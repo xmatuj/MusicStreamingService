@@ -157,7 +157,48 @@ namespace MusicStreamingService.Controllers
                 return RedirectToAction("Login");
             }
 
+            await CheckAndUpdateUserRole(user);
             return View(user);
+        }
+
+        // Метод для проверки и обновления роли пользователя
+        private async Task CheckAndUpdateUserRole(User user)
+        {
+            // Если пользователь подписчик, но нет активной подписки - сбрасываем роль
+            if (user.Role == UserRole.Subscriber)
+            {
+                bool hasActiveSubscription = user.Subscriptions?.Any(s =>
+                    s.IsActivated && s.EndDate > DateTime.Now) == true;
+
+                if (!hasActiveSubscription)
+                {
+                    user.Role = UserRole.User;
+                    _context.Users.Update(user);
+                    await _context.SaveChangesAsync();
+
+                    // Обновляем куки аутентификации
+                    await UpdateAuthenticationCookies(user);
+                }
+            }
+        }
+
+        // Обновляем куки аутентификации
+        private async Task UpdateAuthenticationCookies(User user)
+        {
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, user.Username),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Role, user.Role.ToString()),
+        new Claim("UserId", user.Id.ToString())
+    };
+
+            var claimsIdentity = new ClaimsIdentity(
+                claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity));
         }
 
         // Вспомогательный метод для входа пользователя

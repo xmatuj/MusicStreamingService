@@ -1,0 +1,77 @@
+﻿@model MusicStreamingService.Models.Subscription
+@{
+    ViewData["Title"] = "Подписка оформлена";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0"><i class="fas fa-check-circle fa-2x"></i></h3>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="text-success mb-4">Подписка успешно оформлена!</h2>
+
+                    <div class="alert alert-success mb-4">
+                        <i class="fas fa-crown me-2"></i>
+                        <strong>Поздравляем! Теперь вы Премиум подписчик.</strong>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Детали подписки</h5>
+                            <div class="row text-start">
+                                <div class="col-md-6">
+                                    <p><strong>ID подписки:</strong> @Model.Id</p>
+                                    <p><strong>Транзакция:</strong> @Model.TransactionId</p>
+                                    <p><strong>Сумма:</strong> ₽@Model.Amount</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Начало:</strong> @Model.StartDate.ToString("dd.MM.yyyy HH:mm")</p>
+                                    <p><strong>Окончание:</strong> @Model.EndDate.ToString("dd.MM.yyyy HH:mm")</p>
+                                    <p><strong>Статус:</strong> <span class="badge bg-success">Активна</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-music me-2"></i> Что теперь доступно?</h5>
+                                    <ul class="text-start">
+                                        <li>Создание плейлистов</li>
+                                        <li>Добавление треков</li>
+                                        <li>Прослушивание без рекламы</li>
+                                        <li>Публичные плейлисты</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-calendar me-2"></i> Следующие шаги</h5>
+                                    <p>Подписка автоматически продлится за 3 дня до окончания.</p>
+                                    <p>Вы можете отменить автопродление в любое время.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-3 col-md-8 mx-auto">
+                        <a href="/Playlists/Create" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus-circle me-2"></i> Создать первый плейлист
+                        </a>
+                        <a href="/Subscription/My" class="btn btn-outline-secondary">
+                            <i class="fas fa-history me-2"></i> Мои подписки
+                        </a>
+                        <a href="/" class="btn btn-link">На главную</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Планы подписки";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4">Выберите свой план</h1>
+        <p class="lead">Получите доступ ко всем функциям музыкального сервиса</p>
+    </div>
+
+    <div class="row">
+        <!-- Бесплатный план -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header text-center bg-light">
+                    <h4 class="my-2">Бесплатный</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h2 class="display-4">₽0</h2>
+                        <span class="text-muted">навсегда</span>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Прослушивание музыки</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Поиск треков</li>
+                        <li class="mb-2"><i class="fas fa-times text-danger me-2"></i> Создание плейлистов</li>
+                        <li class="mb-2"><i class="fas fa-times text-danger me-2"></i> Добавление в плейлисты</li>
+                        <li><i class="fas fa-times text-danger me-2"></i> Без рекламы</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="/" class="btn btn-outline-primary w-100">Текущий план</a>
+                    }
+                    else
+                    {
+                        <a href="/Account/Register" class="btn btn-outline-primary w-100">Начать бесплатно</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Премиум план -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-primary shadow">
+                <div class="card-header text-center bg-primary text-white">
+                    <h4 class="my-2">Премиум</h4>
+                    <span class="badge bg-warning">Популярный</span>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h2 class="display-4">₽399</h2>
+                        <span class="text-muted">в месяц</span>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Всё из бесплатного плана</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Создание неограниченных плейлистов</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Добавление треков в плейлисты</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Публичные и приватные плейлисты</li>
+                        <li><i class="fas fa-check text-success me-2"></i> Прослушивание без рекламы</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="/Subscription/Create" class="btn btn-primary w-100">
+                            <i class="fas fa-crown me-1"></i> Оформить подписку
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/Account/Register" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus me-1"></i> Зарегистрироваться
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Для музыкантов -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header text-center bg-info text-white">
+                    <h4 class="my-2">Для музыкантов</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h2 class="display-4">По запросу</h2>
+                        <span class="text-muted">индивидуально</span>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Всё из Премиум плана</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Загрузка собственных треков</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Статистика прослушиваний</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Продвижение музыки</li>
+                        <li><i class="fas fa-check text-success me-2"></i> Персональная поддержка</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="mailto:musicians@musicstreaming.com" class="btn btn-outline-info w-100">
+                        <i class="fas fa-envelope me-1"></i> Связаться с нами
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <a href="/Subscription/Terms" class="btn btn-link">Условия подписки</a>
+    </div>
+</div>
