@@ -965,3 +965,17 @@ body {
         transform: rotate(360deg);
     }
 }
+/* Стили для модального окна рекламы */
+#advertisementModal .modal-header {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+}
+
+#advertisementModal .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+#advertisementModal .modal-footer .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -1,4 +1,4 @@
-﻿﻿
+﻿@using System.Security.Claims﻿
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="~/MusicStreamingServiceMain.styles.css" asp-append-version="true" />
 </head>
 <body>
+    <script>
+        // Простая проверка - если пользователь не администратор, музыкант или подписчик, показываем рекламу
+        window.shouldShowAd = @((!User.IsInRole("Admin") && !User.IsInRole("Musician") && !User.IsInRole("Subscriber")).ToString().ToLower());
+        console.log('Should show ad:', window.shouldShowAd);
+    </script>>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -108,5 +113,52 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/playlists.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Модальное окно рекламы -->
+    <div class="modal fade" id="advertisementModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="fas fa-ad me-2"></i> Реклама
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-megaphone fa-3x text-warning mb-3"></i>
+                        <h4>Слушайте музыку без рекламы!</h4>
+                        <p class="text-muted">Оформите подписку и наслаждайтесь музыкой без прерываний</p>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5>🎵 Музыкальный магазин "Melody"</h5>
+                            <p>Лучшие музыкальные инструменты и оборудование со скидкой 20% по промокоду <strong>MUSIC2024</strong></p>
+                            <small class="text-muted">Сайт: melody-store.com | Тел: 8-800-555-35-35</small>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            Реклама помогает поддерживать бесплатный доступ к музыке
+                        </small>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="/Subscription/Plans" class="btn btn-primary btn-sm">
+                            <i class="fas fa-crown me-1"></i> Оформить подписку без рекламы
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                        Закрыть через <span id="adTimer">5</span>с
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

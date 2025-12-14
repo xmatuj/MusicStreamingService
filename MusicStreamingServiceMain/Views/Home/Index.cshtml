@@ -39,7 +39,7 @@
                 <div class="track-card" data-track-id="@track.Id">
                     <div class="track-image">
                         <img src="https://via.placeholder.com/150" alt="@track.Title" />
-                        <button class="play-button" onclick="playTrack(@track.Id, '@track.Title', '@track.Artist?.Name', @track.Duration)">
+                        <button class="play-button" data-track-id="@track.Id">
                             <i class="fas fa-play"></i>
                         </button>
                     </div>
@@ -116,7 +116,7 @@
         <button class="control-btn" onclick="previousTrack()">
             <i class="fas fa-step-backward"></i>
         </button>
-        <button class="control-btn play-btn" onclick="togglePlay()">
+        <button class="control-btn play-btn" id="playBtn" onclick="togglePlay()">
             <i class="fas fa-play" id="playIcon"></i>
         </button>
         <button class="control-btn" onclick="nextTrack()">
@@ -142,15 +142,13 @@
     </div>
 
     <div class="player-options">
-        <button class="option-btn" onclick="addCurrentTrackToPlaylist()" title="Добавить в плейлист" id="addToPlaylistBtn">
-            <i class="fas fa-plus"></i>
-        </button>
-
-        <button class="option-btn" onclick="toggleMute()">
+        <button class="option-btn" onclick="toggleMuteGlobal()">
             <i class="fas fa-volume-up" id="volumeIcon"></i>
         </button>
-        <input type="range" min="0" max="100" value="50" class="volume-slider" id="volumeSlider" onchange="setVolume(this.value)">
+        <input type="range" min="0" max="100" value="50" class="volume-slider"
+               id="volumeSlider" oninput="setVolumeGlobal(this.value)">
     </div>
+</div>
 
 
 <style>
@@ -407,5 +405,14 @@
                         modal.show();
                     });
             }
+                        // Глобальная функция для воспроизведения трека с проверкой рекламы
+            window.playTrackWithAdCheck = function(trackId, title, artist, duration) {
+                checkSubscriptionAndShowAd(function() {
+                    // Вызываем оригинальную функцию воспроизведения
+                    if (typeof playTrack === 'function') {
+                        playTrack(trackId, title, artist, duration);
+                    }
+                });
+            };
     </script>
 }

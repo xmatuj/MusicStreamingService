@@ -209,7 +209,8 @@ namespace MusicStreamingService.Controllers
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
-                new Claim("UserId", user.Id.ToString())
+                new Claim("UserId", user.Id.ToString()),
+                new Claim("UserRole", user.Role.ToString())
             };
 
             var claimsIdentity = new ClaimsIdentity(
