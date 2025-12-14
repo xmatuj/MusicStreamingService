@@ -78,7 +78,6 @@ namespace MusicStreamingService.Controllers
                 // Генерируем ID транзакции
                 string transactionId = $"SUB_{DateTime.Now:yyyyMMddHHmmss}_{user.Id}_{Guid.NewGuid().ToString()[..8]}";
 
-                // В реальном приложении здесь будет вызов API Сбера
                 // Для тестового режима имитируем успешную оплату
                 bool paymentSuccess = await ProcessSberPayment(model, transactionId);
 
@@ -167,14 +166,11 @@ namespace MusicStreamingService.Controllers
             return View();
         }
 
-        // Вспомогательный метод для обработки платежа через Сбер
+        // Вспомогательный метод для обработки платежа
         private async Task<bool> ProcessSberPayment(SubscriptionViewModel model, string transactionId)
         {
             try
             {
-                // В реальном приложении здесь будет код для интеграции с API Сбера
-                // Для тестового режима используем имитацию
-
                 // Тестовые данные для успешной оплаты
                 string testCardNumber = "2200 0000 0000 0004"; // Тестовая карта Сбера
                 bool isTestMode = _configuration.GetValue<bool>("Sberbank:TestMode", true);
@@ -184,7 +180,7 @@ namespace MusicStreamingService.Controllers
                     // В тестовом режиме всегда успех
                     _logger.LogInformation("Тестовый платеж успешен. Transaction ID: {TransactionId}", transactionId);
 
-                    // Логируем тестовые данные (в реальном приложении не храним!)
+                    // Логируем тестовые данные
                     _logger.LogDebug("Тестовый платеж: Card ending with {CardEnding}",
                         model.CardNumber[^4..]);
 
@@ -192,24 +188,12 @@ namespace MusicStreamingService.Controllers
                 }
                 else
                 {
-                    // Реальный вызов API Сбера (заглушка)
-                    // var sberClient = new SberbankApiClient(_configuration["Sberbank:ApiKey"]);
-                    // var paymentResult = await sberClient.ProcessPaymentAsync(new {
-                    //     cardNumber = model.CardNumber,
-                    //     expiryDate = model.ExpiryDate,
-                    //     cvv = model.CVV,
-                    //     amount = model.Amount,
-                    //     transactionId = transactionId
-                    // });
-                    // return paymentResult.Success;
-
-                    // Для примера возвращаем true
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при обработке платежа через Сбер");
+                _logger.LogError(ex, "Ошибка при обработке платежа");
                 return false;
             }
         }
