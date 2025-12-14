@@ -12,12 +12,12 @@
             <h5>Добавить новый альбом</h5>
         </div>
         <div class="card-body">
-            <form method="post" asp-action="CreateAlbum">
+            <form method="post" asp-action="CreateAlbum" enctype="multipart/form-data">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <input type="text" name="title" class="form-control" placeholder="Название альбома" required>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select name="artistId" class="form-control" required>
                             <option value="">Выберите исполнителя</option>
                             @foreach (var artist in ViewBag.Artists)
@@ -26,8 +26,12 @@
                             }
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <input type="date" name="releaseDate" class="form-control" placeholder="Дата выпуска">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="file" name="coverFile" class="form-control" accept="image/*">
+                        <small class="text-muted">Обложка альбома</small>
                     </div>
                     <div class="col-md-3">
                         <button type="submit" class="btn btn-primary">Добавить альбом</button>
@@ -48,15 +52,30 @@
                 <div class="row">
                     @foreach (var album in Model)
                     {
-                        <div class="col-md-4 mb-3">
-                            <div class="card">
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100">
+                                <div class="album-cover">
+                                    @if (!string.IsNullOrEmpty(album.CoverPath))
+                                    {
+                                        <img src="@album.CoverPath" class="card-img-top" alt="@album.Title"
+                                             style="height: 180px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="no-image-placeholder"
+                                             style="height: 180px; background-color: #6c757d; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-compact-disc fa-3x text-white"></i>
+                                        </div>
+                                    }
+                                </div>
                                 <div class="card-body">
-                                    <h5 class="card-title">@album.Title</h5>
+                                    <h6 class="card-title">@album.Title</h6>
                                     <p class="card-text">
-                                        <strong>Исполнитель:</strong> @album.Artist?.Name<br>
-                                        <strong>Дата выпуска:</strong> @(album.ReleaseDate?.ToString("dd.MM.yyyy") ?? "Не указана")
+                                        <small class="text-muted">
+                                            <strong>Исполнитель:</strong> @album.Artist?.Name<br>
+                                            <strong>Дата:</strong> @(album.ReleaseDate?.ToString("dd.MM.yyyy") ?? "Не указана")
+                                        </small>
                                     </p>
-                                    <small class="text-muted">ID: @album.Id</small>
                                 </div>
                             </div>
                         </div>

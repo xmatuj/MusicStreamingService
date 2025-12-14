@@ -13,6 +13,10 @@ namespace MusicStreamingService.Models
         public int ArtistId { get; set; }
         public DateTime? ReleaseDate { get; set; }
 
+        // Добавляем поле для обложки альбома
+        [StringLength(500)]
+        public string? CoverPath { get; set; }
+
         public virtual Artist Artist { get; set; } = null!;
         public virtual ICollection<Track> Tracks { get; set; } = new List<Track>();
         public virtual ICollection<AlbumStatistics> Statistics { get; set; } = new List<AlbumStatistics>();

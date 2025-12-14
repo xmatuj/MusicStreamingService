@@ -12,6 +12,10 @@ namespace MusicStreamingService.Models
 
         public string Description { get; set; } = string.Empty;
 
+        // Добавляем поле для изображения
+        [StringLength(500)]
+        public string? PhotoPath { get; set; }
+
         public virtual ICollection<Album> Albums { get; set; } = new List<Album>();
         public virtual ICollection<Track> Tracks { get; set; } = new List<Track>();
     }

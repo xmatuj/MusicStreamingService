@@ -10,6 +10,7 @@ namespace MusicStreamingService.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
         public AdminController(ApplicationDbContext context)
         {
@@ -116,11 +117,24 @@ namespace MusicStreamingService.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateArtist(string name, string description)
+        public async Task<IActionResult> CreateArtist(string name, string description, IFormFile? photoFile)
         {
             if (!string.IsNullOrEmpty(name))
             {
-                var artist = new Artist { Name = name, Description = description };
+                string? photoPath = null;
+
+                // Обработка загрузки фото
+                if (photoFile != null && photoFile.Length > 0)
+                {
+                    photoPath = await SaveImageAsync(photoFile, "artists");
+                }
+
+                var artist = new Artist
+                {
+                    Name = name,
+                    Description = description,
+                    PhotoPath = photoPath
+                };
                 _context.Artists.Add(artist);
                 await _context.SaveChangesAsync();
             }
@@ -137,15 +151,24 @@ namespace MusicStreamingService.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAlbum(string title, int artistId, DateTime? releaseDate)
+        public async Task<IActionResult> CreateAlbum(string title, int artistId, DateTime? releaseDate, IFormFile? coverFile)
         {
             if (!string.IsNullOrEmpty(title))
             {
+                string? coverPath = null;
+
+                // Обработка загрузки обложки
+                if (coverFile != null && coverFile.Length > 0)
+                {
+                    coverPath = await SaveImageAsync(coverFile, "albums");
+                }
+
                 var album = new Album
                 {
                     Title = title,
                     ArtistId = artistId,
-                    ReleaseDate = releaseDate
+                    ReleaseDate = releaseDate,
+                    CoverPath = coverPath
                 };
                 _context.Albums.Add(album);
                 await _context.SaveChangesAsync();
@@ -153,9 +176,46 @@ namespace MusicStreamingService.Controllers
             return RedirectToAction("Albums");
         }
 
-        public IActionResult Moderation()
+        // Вспомогательный метод для сохранения изображений
+        private async Task<string?> SaveImageAsync(IFormFile imageFile, string folderName)
         {
-            return RedirectToAction("Index", "Moderation");
+            try
+            {
+                // Проверяем тип файла
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var fileExtension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return null;
+                }
+
+                // Создаем уникальное имя файла
+                var fileName = Guid.NewGuid().ToString() + fileExtension;
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "images", folderName);
+
+                // Создаем папку, если её нет
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                // Сохраняем файл
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(fileStream);
+                }
+
+                // Возвращаем путь относительно wwwroot
+                return $"/images/{folderName}/{fileName}";
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
+
     }
 }

@@ -67,47 +67,60 @@
         </div>
     </section>
 
-    <!-- Новые релизы -->
-    <section class="section">
-        <h2 class="section-title">Новые релизы</h2>
-        <div class="albums-grid">
-            @foreach (var album in Model.NewReleases)
-            {
-                <div class="album-card">
-                    <div class="album-image">
-                        <img src="https://via.placeholder.com/200" alt="@album.Title" />
-                        <button class="play-button">
-                            <i class="fas fa-play"></i>
-                        </button>
-                    </div>
-                    <div class="album-info">
-                        <h3 class="album-title">@album.Title</h3>
-                        <p class="album-artist">@album.Artist?.Name</p>
-                        <p class="album-year">@album.ReleaseDate?.Year</p>
-                    </div>
+    <!-- "Новые релизы" -->
+    <div class="albums-grid">
+        @foreach (var album in Model.NewReleases)
+        {
+            <div class="album-card">
+                <div class="album-image">
+                    @if (!string.IsNullOrEmpty(album.CoverPath))
+                    {
+                        <img src="@album.CoverPath" alt="@album.Title" class="album-cover" />
+                    }
+                    else
+                    {
+                        <div class="no-cover-placeholder">
+                            <i class="fas fa-compact-disc"></i>
+                        </div>
+                    }
+                    <button class="play-button">
+                        <i class="fas fa-play"></i>
+                    </button>
                 </div>
-            }
-        </div>
+                <div class="album-info">
+                    <h3 class="album-title">@album.Title</h3>
+                    <p class="album-artist">@album.Artist?.Name</p>
+                    <p class="album-year">@album.ReleaseDate?.Year</p>
+                </div>
+            </div>
+        }
+    </div>
     </section>
 
-    <!-- Избранные исполнители -->
-    <section class="section">
-        <h2 class="section-title">Избранные исполнители</h2>
-        <div class="artists-grid">
-            @foreach (var artist in Model.FeaturedArtists)
-            {
-                <div class="artist-card">
-                    <div class="artist-image">
-                        <img src="https://via.placeholder.com/150" alt="@artist.Name" />
-                    </div>
-                    <div class="artist-info">
-                        <h3 class="artist-name">@artist.Name</h3>
-                        <p class="artist-description">@(artist.Description?.Length > 100 ? artist.Description.Substring(0, 100) + "..." : artist.Description)</p>
-                    </div>
+    <!-- "Избранные исполнители" -->
+    <div class="artists-grid">
+        @foreach (var artist in Model.FeaturedArtists)
+        {
+            <div class="artist-card">
+                <div class="artist-image">
+                    @if (!string.IsNullOrEmpty(artist.PhotoPath))
+                    {
+                        <img src="@artist.PhotoPath" alt="@artist.Name" class="artist-photo" />
+                    }
+                    else
+                    {
+                        <div class="no-photo-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    }
                 </div>
-            }
-        </div>
-    </section>
+                <div class="artist-info">
+                    <h3 class="artist-name">@artist.Name</h3>
+                    <p class="artist-description">@(artist.Description?.Length > 100 ? artist.Description.Substring(0, 100) + "..." : artist.Description)</p>
+                </div>
+            </div>
+        }
+    </div>
 </div>
 
 <!-- Музыкальный плеер -->

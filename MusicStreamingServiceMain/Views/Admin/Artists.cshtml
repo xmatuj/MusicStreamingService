@@ -12,15 +12,19 @@
             <h5>Добавить нового исполнителя</h5>
         </div>
         <div class="card-body">
-            <form method="post" asp-action="CreateArtist">
+            <form method="post" asp-action="CreateArtist" enctype="multipart/form-data">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" name="name" class="form-control" placeholder="Имя исполнителя" required>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" name="description" class="form-control" placeholder="Описание (опционально)">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <input type="file" name="photoFile" class="form-control" accept="image/*">
+                        <small class="text-muted">JPG, PNG, GIF, WebP (до 5MB)</small>
+                    </div>
+                    <div class="col-md-3">
                         <button type="submit" class="btn btn-primary">Добавить исполнителя</button>
                     </div>
                 </div>
@@ -39,11 +43,28 @@
                 <div class="row">
                     @foreach (var artist in Model)
                     {
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="artist-image">
+                                    @if (!string.IsNullOrEmpty(artist.PhotoPath))
+                                    {
+                                        <img src="@artist.PhotoPath" class="card-img-top" alt="@artist.Name"
+                                             style="height: 200px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="no-image-placeholder"
+                                             style="height: 200px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-user fa-3x text-secondary"></i>
+                                        </div>
+                                    }
+                                </div>
                                 <div class="card-body">
                                     <h5 class="card-title">@artist.Name</h5>
-                                    <p class="card-text">@artist.Description</p>
+                                    @if (!string.IsNullOrEmpty(artist.Description))
+                                    {
+                                        <p class="card-text">@artist.Description</p>
+                                    }
                                     <small class="text-muted">ID: @artist.Id</small>
                                 </div>
                             </div>
