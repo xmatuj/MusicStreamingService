@@ -17,11 +17,18 @@ namespace MusicStreamingService.Controllers
         // GET: Список треков на модерации
         public async Task<IActionResult> Index()
         {
+            // Получаем ID треков, которые уже были отклонены
+            var rejectedTrackIds = await _context.Moderations
+                .Where(m => m.Status == ModerationStatus.Rejected)
+                .Select(m => m.TrackId)
+                .ToListAsync();
+
             var pendingTracks = await _context.Tracks
                 .Include(t => t.Artist)
                 .Include(t => t.Genre)
                 .Include(t => t.Album)
-                .Where(t => !t.IsModerated)
+                .Where(t => !t.IsModerated) // Треки, которые не одобрены
+                .Where(t => !rejectedTrackIds.Contains(t.Id)) // Исключаем отклоненные
                 .ToListAsync();
 
             return View(pendingTracks);

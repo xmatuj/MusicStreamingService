@@ -213,6 +213,95 @@ namespace MusicStreamingService.Controllers
 
             return Ok();
         }
+
+        [Authorize(Roles = "Admin")]
+        public IActionResult StreamForModeration(int id)
+        {
+            try
+            {
+                Console.WriteLine($"=== StreamForModeration called for track {id} ===");
+
+                var track = _context.Tracks.Find(id);
+                if (track == null)
+                {
+                    Console.WriteLine($"Track {id} not found in database");
+                    return NotFound();
+                }
+
+                // Логируем путь к файлу
+                Console.WriteLine($"Track file path: {track.FilePath}");
+
+                // Проверяем разные варианты путей
+                var filePath = track.FilePath.StartsWith('/')
+                    ? track.FilePath.Substring(1)
+                    : track.FilePath;
+
+                var fullPath = Path.Combine(_environment.WebRootPath, filePath);
+                Console.WriteLine($"Full path to file: {fullPath}");
+
+                if (!System.IO.File.Exists(fullPath))
+                {
+                    Console.WriteLine($"File does not exist at: {fullPath}");
+
+                    // Пробуем найти файл в audio папке напрямую
+                    var audioFolder = Path.Combine(_environment.WebRootPath, "audio");
+                    if (Directory.Exists(audioFolder))
+                    {
+                        var audioFiles = Directory.GetFiles(audioFolder);
+                        Console.WriteLine($"Found {audioFiles.Length} files in audio folder:");
+                        foreach (var file in audioFiles)
+                        {
+                            Console.WriteLine($"  {Path.GetFileName(file)}");
+                        }
+
+                        // Попробуем найти файл по имени
+                        var fileName = Path.GetFileName(filePath);
+                        var directPath = Path.Combine(audioFolder, fileName);
+                        if (System.IO.File.Exists(directPath))
+                        {
+                            Console.WriteLine($"Found file at: {directPath}");
+                            fullPath = directPath;
+                        }
+                        else
+                        {
+                            return NotFound($"Audio file not found. Expected at: {fullPath}");
+                        }
+                    }
+                    else
+                    {
+                        return NotFound($"Audio folder not found at: {audioFolder}");
+                    }
+                }
+
+                Console.WriteLine($"Streaming file from: {fullPath}");
+
+                var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+                var contentType = "audio/mpeg";
+
+                // Определяем тип контента по расширению
+                var extension = Path.GetExtension(fullPath).ToLower();
+                if (extension == ".mp3") contentType = "audio/mpeg";
+                else if (extension == ".wav") contentType = "audio/wav";
+                else if (extension == ".ogg") contentType = "audio/ogg";
+
+                Console.WriteLine($"Content-Type: {contentType}");
+
+                // Логируем успешную передачу файла
+                Response.OnCompleted(() =>
+                {
+                    Console.WriteLine($"File streaming completed for track {id}");
+                    return Task.CompletedTask;
+                });
+
+                return File(fileStream, contentType, enableRangeProcessing: true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in StreamForModeration: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 
     public class TrackCreateViewModel

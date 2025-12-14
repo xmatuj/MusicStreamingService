@@ -19,43 +19,23 @@
                     <p><strong>Файл:</strong> @Model.FilePath</p>
                 </div>
                 <div class="col-md-6">
-                    <!-- Полноценный аудиоплеер для модерации -->
+                    <!-- аудиоплеер -->
                     <h5>Прослушивание трека:</h5>
-                    <div class="moderation-player">
-                        <!-- Информация о текущем треке -->
-                        <div class="player-info-moderation">
-                            <div class="track-name-moderation">@Model.Title</div>
-                            <div class="artist-name-moderation">@Model.Artist?.Name</div>
-                        </div>
+                    <div id="audioPlayerContainer">
+                        <audio id="moderationAudioPlayer" controls style="width: 100%;">
+                            <source src="@Url.Action("StreamForModeration", "Tracks", new { id = Model.Id })" type="audio/mpeg">
+                            Ваш браузер не поддерживает аудио элемент.
+                        </audio>
 
-                        <!-- Прогресс-бар -->
-                        <div class="progress-moderation" onclick="seek(event)">
-                            <div class="progress-bar-moderation" id="progressBarModeration"></div>
-                        </div>
-
-                        <!-- Время -->
-                        <div class="time-display-moderation">
-                            <span id="currentTimeModeration">0:00</span>
-                            <span id="totalTimeModeration">@TimeSpan.FromSeconds(Model.Duration).ToString(@"mm\:ss")</span>
-                        </div>
-
-                        <!-- Управление -->
-                        <div class="player-controls-moderation">
-                            <button class="control-btn-moderation" onclick="previousTrackModeration()">
-                                <i class="fas fa-step-backward"></i>
+                        @* <div class="mt-3">
+                            <div id="playerStatus" class="alert alert-info" style="display: none;"></div>
+                            <button id="testPlayBtn" class="btn btn-primary">
+                                <i class="fas fa-play"></i> Протестировать воспроизведение
                             </button>
-                            <button class="control-btn-moderation play-btn-moderation" onclick="togglePlayModeration()">
-                                <i class="fas fa-play" id="playIconModeration"></i>
+                            <button id="refreshBtn" class="btn btn-secondary">
+                                <i class="fas fa-redo"></i> Перезагрузить плеер
                             </button>
-                            <button class="control-btn-moderation" onclick="nextTrackModeration()">
-                                <i class="fas fa-step-forward"></i>
-                            </button>
-                            <button class="control-btn-moderation" onclick="toggleMuteModeration()">
-                                <i class="fas fa-volume-up" id="volumeIconModeration"></i>
-                            </button>
-                            <input type="range" min="0" max="100" value="50" class="volume-slider-moderation"
-                                   id="volumeSliderModeration" onchange="setVolumeModeration(this.value)">
-                        </div>
+                        </div> *@
                     </div>
                 </div>
             </div>
@@ -91,120 +71,127 @@
 
 @section Scripts {
     <script>
-        // Переменные для плеера модерации
-        let audioModeration = null;
-        let isPlayingModeration = false;
-        const currentTrackId = @Model.Id;
-        const currentTrackDuration = @Model.Duration;
-
-        // Инициализация плеера при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
-            // Создаем аудио элемент
-            audioModeration = new Audio(`/Tracks/Stream/${currentTrackId}`);
+            const audioPlayer = document.getElementById('moderationAudioPlayer');
+            const playerStatus = document.getElementById('playerStatus');
+            const testPlayBtn = document.getElementById('testPlayBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
 
-            // Настройка событий аудио
-            audioModeration.addEventListener('loadedmetadata', function() {
-                document.getElementById('totalTimeModeration').textContent = formatTime(audioModeration.duration);
+            console.log('Audio player initialized for track: @Model.Id');
+            console.log('Audio source:', audioPlayer.src);
+
+            // Обработчики событий аудио
+            audioPlayer.addEventListener('error', function(e) {
+                console.error('Audio error:', e);
+                playerStatus.textContent = 'Ошибка воспроизведения: ' + getAudioError(audioPlayer.error);
+                playerStatus.className = 'alert alert-danger';
+                playerStatus.style.display = 'block';
             });
 
-            audioModeration.addEventListener('timeupdate', function() {
-                updateProgressModeration();
+            audioPlayer.addEventListener('loadedmetadata', function() {
+                console.log('Audio metadata loaded, duration:', audioPlayer.duration);
+                playerStatus.textContent = 'Аудио загружено. Длительность: ' + formatTime(audioPlayer.duration);
+                playerStatus.className = 'alert alert-success';
+                playerStatus.style.display = 'block';
+
+                // Автоскрытие через 5 секунд
+                setTimeout(() => {
+                    playerStatus.style.display = 'none';
+                }, 5000);
             });
 
-            audioModeration.addEventListener('ended', function() {
-                isPlayingModeration = false;
-                updatePlayButtonModeration();
-                // Сбрасываем прогресс при завершении
-                document.getElementById('progressBarModeration').style.width = '0%';
-                document.getElementById('currentTimeModeration').textContent = '0:00';
+            audioPlayer.addEventListener('canplay', function() {
+                console.log('Audio can play');
+                playerStatus.textContent = 'Аудио готово к воспроизведению';
+                playerStatus.className = 'alert alert-info';
+                playerStatus.style.display = 'block';
+
+                setTimeout(() => {
+                    playerStatus.style.display = 'none';
+                }, 3000);
             });
 
-            // Устанавливаем громкость по умолчанию
-            audioModeration.volume = 0.5;
+            // Кнопка тестирования
+            testPlayBtn.addEventListener('click', function() {
+                console.log('Testing audio playback...');
+
+                // Пробуем загрузить аудио через fetch для проверки
+                fetch(audioPlayer.src)
+                    .then(response => {
+                        console.log('Fetch response status:', response.status);
+                        if (response.ok) {
+                            playerStatus.textContent = 'Аудио файл доступен (HTTP ' + response.status + ')';
+                            playerStatus.className = 'alert alert-success';
+
+                            // Пробуем воспроизвести
+                            audioPlayer.play().then(() => {
+                                playerStatus.textContent = 'Воспроизведение успешно начато!';
+                                playerStatus.className = 'alert alert-success';
+                            }).catch(error => {
+                                playerStatus.textContent = 'Ошибка воспроизведения: ' + error.message;
+                                playerStatus.className = 'alert alert-warning';
+                            });
+                        } else {
+                            playerStatus.textContent = 'Ошибка загрузки файла (HTTP ' + response.status + ')';
+                            playerStatus.className = 'alert alert-danger';
+                        }
+                        playerStatus.style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        playerStatus.textContent = 'Ошибка сети: ' + error.message;
+                        playerStatus.className = 'alert alert-danger';
+                        playerStatus.style.display = 'block';
+                    });
+            });
+
+            // Кнопка перезагрузки
+            refreshBtn.addEventListener('click', function() {
+                console.log('Reloading audio player...');
+                audioPlayer.load();
+                playerStatus.textContent = 'Плеер перезагружен';
+                playerStatus.className = 'alert alert-info';
+                playerStatus.style.display = 'block';
+
+                setTimeout(() => {
+                    playerStatus.style.display = 'none';
+                }, 2000);
+            });
+
+            // Автоматически пробуем воспроизвести через 1 секунду
+            setTimeout(() => {
+                console.log('Attempting to play audio...');
+                audioPlayer.play().catch(error => {
+                    console.log('Auto-play prevented:', error.message);
+                    playerStatus.textContent = 'Нажмите "Протестировать воспроизведение" для проверки аудио';
+                    playerStatus.className = 'alert alert-warning';
+                    playerStatus.style.display = 'block';
+                });
+            }, 1000);
         });
 
-        // Управление воспроизведением
-        function togglePlayModeration() {
-            if (!audioModeration) return;
+        function getAudioError(error) {
+            if (!error) return 'Неизвестная ошибка';
 
-            if (isPlayingModeration) {
-                audioModeration.pause();
-            } else {
-                audioModeration.play();
-            }
-            isPlayingModeration = !isPlayingModeration;
-            updatePlayButtonModeration();
-        }
-
-        function updatePlayButtonModeration() {
-            const playIcon = document.getElementById('playIconModeration');
-            if (isPlayingModeration) {
-                playIcon.className = 'fas fa-pause';
-            } else {
-                playIcon.className = 'fas fa-play';
+            switch(error.code) {
+                case error.MEDIA_ERR_ABORTED:
+                    return 'Воспроизведение отменено';
+                case error.MEDIA_ERR_NETWORK:
+                    return 'Ошибка сети';
+                case error.MEDIA_ERR_DECODE:
+                    return 'Ошибка декодирования аудио';
+                case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    return 'Формат аудио не поддерживается';
+                default:
+                    return 'Неизвестная ошибка: ' + error.code;
             }
         }
 
-        // Обновление прогресса
-        function updateProgressModeration() {
-            if (!audioModeration) return;
-
-            const progress = (audioModeration.currentTime / audioModeration.duration) * 100;
-            document.getElementById('progressBarModeration').style.width = progress + '%';
-            document.getElementById('currentTimeModeration').textContent = formatTime(audioModeration.currentTime);
-        }
-
-        // Перемотка
-        function seek(event) {
-            if (!audioModeration) return;
-
-            const progressBar = event.currentTarget;
-            const rect = progressBar.getBoundingClientRect();
-            const percent = (event.clientX - rect.left) / rect.width;
-
-            audioModeration.currentTime = percent * audioModeration.duration;
-        }
-
-        // Управление громкостью
-        function setVolumeModeration(value) {
-            if (audioModeration) {
-                audioModeration.volume = value / 100;
-            }
-        }
-
-        function toggleMuteModeration() {
-            if (!audioModeration) return;
-
-            audioModeration.muted = !audioModeration.muted;
-            const volumeIcon = document.getElementById('volumeIconModeration');
-            volumeIcon.className = audioModeration.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
-        }
-
-        // Навигация по трекам (для будущего расширения)
-        function nextTrackModeration() {
-            // Можно добавить функционал перехода к следующему треку в очереди модерации
-            console.log('Next track functionality can be added here');
-        }
-
-        function previousTrackModeration() {
-            // Можно добавить функционал перехода к предыдущему треку в очереди модерации
-            console.log('Previous track functionality can be added here');
-        }
-
-        // Вспомогательная функция форматирования времени
         function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
-
-        // Автоматическое воспроизведение при загрузке
-        // function autoPlay() {
-        //     setTimeout(() => {
-        //         togglePlayModeration();
-        //     }, 500);
-        // }
-
-        // autoPlay();
     </script>
 }
