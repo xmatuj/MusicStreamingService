@@ -368,7 +368,6 @@
                                             <th>Статус модерации</th>
                                             <th>Комментарий</th>
                                             <th>Дата</th>
-                                            <th>Действия</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -377,7 +376,7 @@
                                             var statusClass = "";
                                             var statusText = "";
 
-                                            if (!track.IsModerated && track.LatestModeration == null)
+                                            if (!track.IsModerated && track.LatestModeration != null && track.LatestModeration.Status == MusicStreamingService.Models.ModerationStatus.Pending)
                                             {
                                                 statusClass = "warning";
                                                 statusText = "На модерации";
@@ -459,7 +458,7 @@
                                 @{
                                     var tracksList = (List<MusicStreamingService.Models.Track>)ViewBag.MusicianTracks;
                                     var approvedCount = tracksList.Count(t => t.IsModerated && t.LatestModeration?.Status == MusicStreamingService.Models.ModerationStatus.Approved);
-                                    var pendingCount = tracksList.Count(t => !t.IsModerated && t.LatestModeration == null);
+                                    var pendingCount = tracksList.Count(t => !t.IsModerated && t.LatestModeration.Status == MusicStreamingService.Models.ModerationStatus.Pending);
                                     var rejectedCount = tracksList.Count(t => t.LatestModeration?.Status == MusicStreamingService.Models.ModerationStatus.Rejected);
                                     var totalCount = tracksList.Count;
                                 }
@@ -686,7 +685,6 @@
                 return;
             }
 
-            // Здесь будет AJAX запрос для создания плейлиста
             console.log('Создание плейлиста:', { name, description, isPrivate });
 
             // Закрываем модальное окно
