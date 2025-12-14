@@ -8,6 +8,7 @@
 
     @if (Model.TotalResults == 0)
     {
+        <!-- Без изменений -->
         <div class="alert alert-info">
             <h5>Ничего не найдено</h5>
             <p>По запросу "<strong>@Model.Query</strong>" ничего не найдено.</p>
@@ -26,76 +27,62 @@
             Найдено результатов: <strong>@Model.TotalResults</strong>
         </div>
 
+        <!-- ТРЕКИ -->
         @if (Model.Tracks.Any())
         {
             <div class="mb-5">
-                <h4 class="mb-3">Треки (@Model.Tracks.Count)</h4>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Название</th>
-                                <th>Исполнитель</th>
-                                <th>Альбом</th>
-                                <th>Длительность</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var track in Model.Tracks)
-                            {
-                                <tr>
-                                    <td>
-                                        <strong>@track.Title</strong>
-                                    </td>
-                                    <td>@track.Artist?.Name</td>
-                                    <td>@track.Album?.Title</td>
-                                    <td>@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</td>
-                                    <td>
-                                        <a href="/Tracks/Play/@track.Id" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-play"></i> Слушать
-                                        </a>
-                                        @if (User.Identity.IsAuthenticated)
-                                        {
-                                            <button class="btn btn-sm btn-outline-secondary add-to-playlist-btn"
-                                                    data-track-id="@track.Id">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        }
-
-        @if (Model.Artists.Any())
-        {
-            <div class="mb-5">
-                <h4 class="mb-3">Исполнители (@Model.Artists.Count)</h4>
+                <h4 class="mb-3">
+                    <i class="fas fa-music me-2"></i> Треки (@Model.Tracks.Count)
+                </h4>
                 <div class="row">
-                    @foreach (var artist in Model.Artists)
+                    @foreach (var track in Model.Tracks)
                     {
-                        <div class="col-md-4 mb-3">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <div class="artist-circle mb-3">
-                                        <i class="fas fa-user fa-2x"></i>
-                                    </div>
-                                    <h5>@artist.Name</h5>
-                                    @if (!string.IsNullOrEmpty(artist.Description))
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 search-track-card">
+                                <div class="search-track-image">
+                                    @if (!string.IsNullOrEmpty(track.CoverImage))
                                     {
-                                        <p class="text-muted small">
-                                            @(artist.Description.Length > 100 ?
-                                                                        artist.Description.Substring(0, 100) + "..." :
-                                                                        artist.Description)
+                                        <img src="@track.CoverImage" alt="@track.Title"
+                                             class="card-img-top search-img" />
+                                    }
+                                    else
+                                    {
+                                        <div class="search-placeholder" style="background: @track.ColorHash;">
+                                            <i class="fas fa-music fa-2x"></i>
+                                        </div>
+                                    }
+                                    <button class="search-play-btn" onclick="playTrackSearch('@track.Id', '@track.Title', '@track.Artist?.Name', @track.Duration)">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title text-truncate" title="@track.Title">@track.Title</h6>
+                                    <p class="card-text small text-muted mb-1">
+                                        <i class="fas fa-user me-1"></i> @track.Artist?.Name
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(track.Album?.Title))
+                                    {
+                                        <p class="card-text small text-muted">
+                                            <i class="fas fa-compact-disc me-1"></i> @track.Album.Title
                                         </p>
                                     }
-                                    <a href="#" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-music"></i> Треки исполнителя
-                                    </a>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <span class="badge bg-secondary">
+                                            @TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")
+                                        </span>
+                                        <div class="search-actions">
+                                            <a href="/Tracks/Play/@track.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-play"></i>
+                                            </a>
+                                            @if (User.Identity.IsAuthenticated)
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary add-to-playlist-btn"
+                                                        data-track-id="@track.Id">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -104,29 +91,99 @@
             </div>
         }
 
+        <!-- АРТИСТЫ -->
+        @if (Model.Artists.Any())
+        {
+            <div class="mb-5">
+                <h4 class="mb-3">
+                    <i class="fas fa-user me-2"></i> Исполнители (@Model.Artists.Count)
+                </h4>
+                <div class="row">
+                    @foreach (var artist in Model.Artists)
+                    {
+                        <div class="col-md-4 col-lg-3 mb-4">
+                            <div class="card h-100 search-artist-card">
+                                <div class="search-artist-image">
+                                    @if (!string.IsNullOrEmpty(artist.PhotoPath))
+                                    {
+                                        <img src="@artist.PhotoPath" alt="@artist.Name"
+                                             class="card-img-top search-img rounded-circle" />
+                                    }
+                                    else
+                                    {
+                                        <div class="search-placeholder rounded-circle"
+                                             style="background: @Model.GetArtistColor(artist.Id);">
+                                            <i class="fas fa-user fa-2x"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="card-body text-center">
+                                    <h6 class="card-title mb-2">@artist.Name</h6>
+                                    @if (!string.IsNullOrEmpty(artist.Description))
+                                    {
+                                        <p class="card-text small text-muted text-truncate-2">
+                                            @artist.Description
+                                        </p>
+                                    }
+                                    <div class="mt-3">
+                                        <a href="#" class="btn btn-sm btn-outline-primary w-100">
+                                            <i class="fas fa-music me-1"></i> Треки
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- АЛЬБОМЫ -->
         @if (Model.Albums.Any())
         {
             <div class="mb-5">
-                <h4 class="mb-3">Альбомы (@Model.Albums.Count)</h4>
+                <h4 class="mb-3">
+                    <i class="fas fa-compact-disc me-2"></i> Альбомы (@Model.Albums.Count)
+                </h4>
                 <div class="row">
                     @foreach (var album in Model.Albums)
                     {
-                        <div class="col-md-3 mb-3">
-                            <div class="card">
-                                <div class="album-cover">
-                                    <div class="cover-image">
-                                        <i class="fas fa-compact-disc fa-3x"></i>
-                                    </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="card h-100 search-album-card">
+                                <div class="search-album-image">
+                                    @if (!string.IsNullOrEmpty(album.CoverPath))
+                                    {
+                                        <img src="@album.CoverPath" alt="@album.Title"
+                                             class="card-img-top search-img" />
+                                    }
+                                    else
+                                    {
+                                        <div class="search-placeholder"
+                                             style="background: @Model.GetAlbumColor(album.Id);">
+                                            <i class="fas fa-compact-disc fa-2x"></i>
+                                        </div>
+                                    }
+                                    <button class="search-play-btn"
+                                            onclick="playAlbumFirstTrack(@album.Id)">
+                                        <i class="fas fa-play"></i>
+                                    </button>
                                 </div>
                                 <div class="card-body">
-                                    <h6 class="card-title">@album.Title</h6>
-                                    <p class="card-text small text-muted">
-                                        @album.Artist?.Name<br>
-                                        @album.ReleaseDate?.Year
+                                    <h6 class="card-title text-truncate" title="@album.Title">@album.Title</h6>
+                                    <p class="card-text small text-muted mb-2">
+                                        <i class="fas fa-user me-1"></i> @album.Artist?.Name
                                     </p>
-                                    <a href="#" class="btn btn-sm btn-outline-primary w-100">
-                                        Открыть
-                                    </a>
+                                    @if (album.ReleaseDate.HasValue)
+                                    {
+                                        <p class="card-text small text-muted mb-3">
+                                            <i class="fas fa-calendar me-1"></i> @album.ReleaseDate.Value.Year
+                                        </p>
+                                    }
+                                    <div class="d-grid">
+                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-list me-1"></i> Показать треки
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -144,46 +201,151 @@
 </div>
 
 <style>
-    .artist-circle {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background-color: #f8f9fa;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
+    /* Стили для карточек поиска */
+    .search-track-card, .search-artist-card, .search-album-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        border: 1px solid #dee2e6;
     }
 
-    .album-cover {
-        height: 120px;
-        background-color: #6c757d;
+        .search-track-card:hover, .search-artist-card:hover, .search-album-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+    /* Изображения */
+    .search-track-image, .search-artist-image, .search-album-image {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 1/1;
+    }
+
+    .search-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .search-track-card:hover .search-img,
+    .search-artist-card:hover .search-img,
+    .search-album-card:hover .search-img {
+        transform: scale(1.05);
+    }
+
+    /* Placeholder для изображений */
+    .search-placeholder {
+        width: 100%;
+        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
     }
 
-    .cover-image {
-        text-align: center;
+    .search-artist-image .search-placeholder {
+        border-radius: 50%;
+    }
+
+    /* Кнопка воспроизведения */
+    .search-play-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: rgba(0, 123, 255, 0.9);
+        color: white;
+        border: none;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .search-track-card:hover .search-play-btn,
+    .search-album-card:hover .search-play-btn {
+        display: flex;
+    }
+
+    .search-play-btn:hover {
+        background-color: rgba(0, 123, 255, 1);
+    }
+
+    /* Обрезание текста */
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Действия */
+    .search-actions {
+        display: flex;
+        gap: 5px;
+    }
+
+    /* Адаптивность */
+    @@media (max-width: 768px) {
+        .search-track-image, .search-artist-image, .search-album-image {
+            height: 200px;
+        }
+
+        .col-md-6, .col-md-4, .col-md-3 {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .search-track-image, .search-artist-image, .search-album-image {
+            height: 150px;
+        }
     }
 </style>
 
 @section Scripts {
     <script>
+        // Функция для воспроизведения трека из поиска
+        function playTrackSearch(trackId, trackTitle, artistName, duration) {
+            if (typeof window.playTrackWithAdCheck === 'function') {
+                window.playTrackWithAdCheck(trackId, trackTitle, artistName, duration);
+            } else if (typeof window.playTrack === 'function') {
+                window.playTrack(trackId, trackTitle, artistName, duration);
+            } else {
+                // Fallback: открываем страницу трека
+                window.location.href = `/Tracks/Play/${trackId}`;
+            }
+        }
+
+        // Функция для воспроизведения первого трека альбома
+        function playAlbumFirstTrack(albumId) {
+            // В будущем можно реализовать получение первого трека альбома
+            // А пока просто показываем алерт
+            alert('Функция воспроизведения альбома будет реализована позже');
+        }
+
         // Обработка кнопок добавления в плейлист
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.add-to-playlist-btn').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    const trackId = this.dataset.trackId;
+                    e.stopPropagation();
 
+                    const trackId = this.dataset.trackId;
+                    console.log('Adding track to playlist from search:', trackId);
+
+                    // Используем существующую функцию или показываем модальное окно
                     if (typeof window.addToPlaylist === 'function') {
                         window.addToPlaylist(trackId);
                     } else {
-                        // Если функция не загружена, делаем простой редирект
+                        // Загружаем и показываем модальное окно
                         fetch(`/Playlists/AddToPlaylistModal?trackId=${trackId}`)
-                            .then(r => r.text())
+                            .then(response => response.text())
                             .then(html => {
                                 const div = document.createElement('div');
                                 div.innerHTML = html;
@@ -193,7 +355,48 @@
                                     document.getElementById('addToPlaylistModal')
                                 );
                                 modal.show();
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Ошибка при загрузке модального окна');
                             });
+                    }
+                });
+            });
+
+            // Обработка кликов по карточкам
+            document.querySelectorAll('.search-track-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Если клик не по кнопке или ссылке внутри карточки
+                    if (!e.target.closest('button') && !e.target.closest('a')) {
+                        const trackId = this.querySelector('.add-to-playlist-btn')?.dataset.trackId;
+                        if (trackId) {
+                            window.location.href = `/Tracks/Play/${trackId}`;
+                        }
+                    }
+                });
+            });
+
+            document.querySelectorAll('.search-artist-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (!e.target.closest('button') && !e.target.closest('a')) {
+                        const artistName = this.querySelector('.card-title')?.textContent;
+                        if (artistName) {
+                            // Можно добавить переход на страницу артиста
+                            alert(`Страница артиста "${artistName}" будет реализована позже`);
+                        }
+                    }
+                });
+            });
+
+            document.querySelectorAll('.search-album-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (!e.target.closest('button') && !e.target.closest('a')) {
+                        const albumId = this.querySelector('.search-play-btn')?.getAttribute('onclick')?.match(/\d+/)?.[0];
+                        if (albumId) {
+                            // Можно добавить переход на страницу альбома
+                            alert(`Страница альбома будет реализована позже`);
+                        }
                     }
                 });
             });

@@ -69,5 +69,18 @@ namespace MusicStreamingService.Controllers
         public List<Artist> Artists { get; set; }
         public List<Album> Albums { get; set; }
         public int TotalResults { get; set; }
+
+        // Добавим вспомогательные свойства для placeholder цветов
+        public string GetAlbumColor(int albumId)
+        {
+            var colors = new[] { "#667eea", "#764ba2", "#f093fb", "#f5576c", "#4facfe", "#00f2fe", "#43e97b", "#38f9d7" };
+            return colors[albumId % colors.Length];
+        }
+
+        public string GetArtistColor(int artistId)
+        {
+            var colors = new[] { "#fa709a", "#ff6a00", "#f093fb", "#30cfd0", "#a3bded", "#6991c7", "#fad0c4", "#a1c4fd" };
+            return colors[artistId % colors.Length];
+        }
     }
 }

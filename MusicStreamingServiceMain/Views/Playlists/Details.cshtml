@@ -103,6 +103,21 @@
                                         <span class="position-number ms-2">@(playlistTrack.Position + 1)</span>
                                     </td>
                                     <td>
+                                        <!-- Маленькая обложка рядом с названием -->
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            @if (!string.IsNullOrEmpty(track.CoverImage))
+                                            {
+                                                <img src="@track.CoverImage" alt="@track.Title"
+                                                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />
+                                            }
+                                            <div>
+                                                <a href="/Tracks/Play/@track.Id" class="text-decoration-none">
+                                                    <strong>@track.Title</strong>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
                                         <a href="/Tracks/Play/@track.Id" class="text-decoration-none">
                                             <strong>@track.Title</strong>
                                         </a>

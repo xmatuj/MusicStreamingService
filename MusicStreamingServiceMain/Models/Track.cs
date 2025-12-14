@@ -60,5 +60,39 @@ namespace MusicStreamingService.Models
         // Свойство для получения комментария модерации
         [NotMapped]
         public string ModerationComment => LatestModeration?.Comment ?? "";
+
+        // НОВОЕ: Свойство для получения обложки трека (из альбома или артиста)
+        [NotMapped]
+        public string CoverImage
+        {
+            get
+            {
+                // Если есть альбом и у него есть обложка - используем её
+                if (Album != null && !string.IsNullOrEmpty(Album.CoverPath))
+                {
+                    return Album.CoverPath;
+                }
+
+                // Если есть артист и у него есть фото - используем его
+                if (Artist != null && !string.IsNullOrEmpty(Artist.PhotoPath))
+                {
+                    return Artist.PhotoPath;
+                }
+
+                // Если ничего нет - возвращаем дефолтную картинку
+                return "/images/default-track-cover.jpg";
+            }
+        }
+
+        // Свойство для получения цвета на основе ID трека (для placeholder)
+        [NotMapped]
+        public string ColorHash
+        {
+            get
+            {
+                var colors = new[] { "#667eea", "#764ba2", "#f093fb", "#f5576c", "#4facfe", "#00f2fe", "#43e97b", "#38f9d7" };
+                return colors[Id % colors.Length];
+            }
+        }
     }
 }

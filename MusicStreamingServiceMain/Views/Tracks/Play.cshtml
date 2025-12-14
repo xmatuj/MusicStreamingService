@@ -5,17 +5,33 @@
 
 <div class="container">
     <div class="row">
+        <div class="col-md-4">
+            <!-- Обложка трека -->
+            <div class="track-cover-large mb-4">
+                @if (!string.IsNullOrEmpty(Model.CoverImage))
+                {
+                    <img src="@Model.CoverImage" alt="@Model.Title"
+                         class="img-fluid rounded shadow"
+                         style="max-width: 300px; max-height: 300px; object-fit: cover;" />
+                }
+                else
+                {
+                    <div style="width: 300px; height: 300px; background: @Model.ColorHash;
+                                    border-radius: 8px; display: flex; align-items: center;
+                                    justify-content: center; color: white; font-size: 4rem;">
+                        <i class="fas fa-music"></i>
+                    </div>
+                }
+            </div>
+        </div>
         <div class="col-md-8">
-            <!-- Плеер -->
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title">@Model.Title</h3>
-                    <p class="card-text">
-                        <strong>Исполнитель:</strong> @Model.Artist?.Name<br>
-                        <strong>Альбом:</strong> @(Model.Album?.Title ?? "Не указан")<br>
-                        <strong>Жанр:</strong> @Model.Genre?.Name<br>
-                        <strong>Длительность:</strong> @TimeSpan.FromSeconds(Model.Duration).ToString(@"mm\:ss")
-                    </p>
+            <h1>@Model.Title</h1>
+            <p class="lead">
+                <strong>Исполнитель:</strong> @Model.Artist?.Name<br>
+                <strong>Альбом:</strong> @Model.Album?.Title<br>
+                <strong>Жанр:</strong> @Model.Genre?.Name<br>
+                <strong>Длительность:</strong> @TimeSpan.FromSeconds(Model.Duration).ToString(@"mm\:ss")
+            </p>
 
                     <audio id="audioPlayer" controls class="w-100">
                         <source src="/Tracks/Stream/@Model.Id" type="audio/mpeg">

@@ -214,6 +214,37 @@ namespace MusicStreamingService.Controllers
             return Ok();
         }
 
+        // GET: Получение обложки трека
+        [HttpGet]
+        public IActionResult GetTrackCover(int id)
+        {
+            var track = _context.Tracks
+                .Include(t => t.Album)
+                .Include(t => t.Artist)
+                .FirstOrDefault(t => t.Id == id);
+
+            if (track == null)
+            {
+                // Возвращаем дефолтную обложку
+                return Redirect("/images/default-track-cover.jpg");
+            }
+
+            // Проверяем обложку альбома
+            if (track.Album != null && !string.IsNullOrEmpty(track.Album.CoverPath))
+            {
+                return Redirect(track.Album.CoverPath);
+            }
+
+            // Проверяем фото артиста
+            if (track.Artist != null && !string.IsNullOrEmpty(track.Artist.PhotoPath))
+            {
+                return Redirect(track.Artist.PhotoPath);
+            }
+
+            // Дефолтная обложка
+            return Redirect("/images/default-track-cover.jpg");
+        }
+
         [Authorize(Roles = "Admin")]
         public IActionResult StreamForModeration(int id)
         {

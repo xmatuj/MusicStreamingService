@@ -38,7 +38,21 @@
             {
                 <div class="track-card" data-track-id="@track.Id">
                     <div class="track-image">
-                        <img src="https://via.placeholder.com/150" alt="@track.Title" />
+                        <!-- Используем обложку из свойства CoverImage -->
+                        @if (!string.IsNullOrEmpty(track.CoverImage))
+                        {
+                            <img src="@track.CoverImage" alt="@track.Title"
+                                 style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px;" />
+                        }
+                        else
+                        {
+                            <!-- Fallback на цветной placeholder -->
+                            <div style="width: 150px; height: 150px; background: @track.ColorHash;
+                                        border-radius: 8px; display: flex; align-items: center;
+                                        justify-content: center; color: white; font-size: 2rem;">
+                                <i class="fas fa-music"></i>
+                            </div>
+                        }
                         <button class="play-button" data-track-id="@track.Id">
                             <i class="fas fa-play"></i>
                         </button>
@@ -50,14 +64,11 @@
                     </div>
                     <div class="track-actions">
                         <span class="track-duration">@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</span>
-
-                        <!-- Кнопка добавления в плейлист -->
                         <button class="add-to-playlist-btn"
                                 data-track-id="@track.Id"
                                 title="Добавить в плейлист">
                             <i class="fas fa-plus"></i>
                         </button>
-
                         <button class="like-button" onclick="likeTrack(@track.Id)">
                             <i class="far fa-heart"></i>
                         </button>

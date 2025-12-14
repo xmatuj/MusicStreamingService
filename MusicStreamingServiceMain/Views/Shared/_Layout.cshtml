@@ -14,7 +14,7 @@
         // Простая проверка - если пользователь не администратор, музыкант или подписчик, показываем рекламу
         window.shouldShowAd = @((!User.IsInRole("Admin") && !User.IsInRole("Musician") && !User.IsInRole("Subscriber")).ToString().ToLower());
         console.log('Should show ad:', window.shouldShowAd);
-    </script>>
+    </script>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
