@@ -1,0 +1,136 @@
+﻿@model List<MusicStreamingService.Controllers.AlbumStatViewModel>
+@{
+    ViewData["Title"] = "Статистика альбомов";
+}
+
+<div class="container">
+    <h2>Статистика альбомов</h2>
+
+    <!-- Фильтры -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Поиск по названию альбома или исполнителю..."
+                           value="@ViewBag.Search" />
+                </div>
+                <div class="col-md-4">
+                    <select name="period" class="form-control">
+                        @foreach (var period in ViewBag.Periods)
+                        {
+                            <option value="@period.Key" selected="@(ViewBag.Period == period.Key)">
+                                @period.Value
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Применить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Таблица статистики -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-chart-pie me-2"></i> Статистика прослушиваний альбомов
+                <span class="badge bg-secondary ms-2">@Model.Count альбомов</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Альбом</th>
+                                <th>Исполнитель</th>
+                                <th class="text-center">Треков</th>
+                                <th class="text-center">Прослушивания</th>
+                                <th>Последнее прослушивание</th>
+                                <th>Рейтинг</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int rank = 1;
+                                foreach (var stat in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@stat.AlbumTitle</strong>
+                                            <br>
+                                            <small class="text-muted">ID: @stat.AlbumId</small>
+                                        </td>
+                                        <td>@stat.ArtistName</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info">@stat.TrackCount</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary fs-6">@stat.TotalListens</span>
+                                        </td>
+                                        <td>
+                                            @if (stat.LastListen > DateTime.MinValue)
+                                            {
+                                                <small class="text-muted">@stat.LastListen.ToString("dd.MM.yyyy HH:mm")</small>
+                                            }
+                                            else
+                                            {
+                                                <small class="text-muted">Нет данных</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (stat.TotalListens > 0)
+                                            {
+                                                <span class="badge @GetRankBadgeClass(rank) fs-6">#@rank</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-light text-dark fs-6">-</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                    rank++;
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Нет данных для отображения</h5>
+                    <p class="text-muted">Измените параметры фильтрации</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/Admin" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад в админку
+        </a>
+        <a href="/Statistics/Tracks" class="btn btn-outline-primary ms-2">
+            <i class="fas fa-music me-1"></i> Статистика треков
+        </a>
+    </div>
+</div>
+
+@functions {
+    string GetRankBadgeClass(int rank)
+    {
+        return rank switch
+        {
+            1 => "bg-warning text-dark",
+            2 => "bg-secondary",
+            3 => "bg-danger",
+            _ => "bg-light text-dark"
+        };
+    }
+}

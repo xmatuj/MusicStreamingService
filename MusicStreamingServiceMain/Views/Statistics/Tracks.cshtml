@@ -1,0 +1,110 @@
+﻿@model List<MusicStreamingService.Controllers.TrackStatViewModel>
+@{
+    ViewData["Title"] = "Статистика треков";
+}
+
+<div class="container">
+    <h2>Статистика треков</h2>
+
+    <!-- Фильтры -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Поиск по названию трека или исполнителю..."
+                           value="@ViewBag.Search" />
+                </div>
+                <div class="col-md-4">
+                    <select name="period" class="form-control">
+                        @foreach (var period in ViewBag.Periods)
+                        {
+                            <option value="@period.Key" selected="@(ViewBag.Period == period.Key)">
+                                @period.Value
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Применить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Таблица статистики -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-chart-line me-2"></i> Статистика прослушиваний
+                <span class="badge bg-secondary ms-2">@Model.Count треков</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Трек</th>
+                                <th>Исполнитель</th>
+                                <th>Альбом</th>
+                                <th class="text-center">Прослушивания</th>
+                                <th>Последнее прослушивание</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var stat in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@stat.TrackTitle</strong>
+                                        <br>
+                                        <small class="text-muted">ID: @stat.TrackId</small>
+                                    </td>
+                                    <td>@stat.ArtistName</td>
+                                    <td>@(!string.IsNullOrEmpty(stat.AlbumTitle) ? stat.AlbumTitle : "Без альбома")</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary fs-6">@stat.TotalListens</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@stat.LastListen.ToString("dd.MM.yyyy HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <a href="/Statistics/TrackDetails/@stat.TrackId?period=@ViewBag.Period"
+                                           class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-chart-bar me-1"></i> Детали
+                                        </a>
+                                        <a href="/Tracks/Play/@stat.TrackId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-play me-1"></i> Слушать
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Нет данных для отображения</h5>
+                    <p class="text-muted">Измените параметры фильтрации</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/Admin" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад в админку
+        </a>
+        <a href="/Statistics/Albums" class="btn btn-outline-primary ms-2">
+            <i class="fas fa-compact-disc me-1"></i> Статистика альбомов
+        </a>
+    </div>
+</div>

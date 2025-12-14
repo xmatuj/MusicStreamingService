@@ -1,0 +1,192 @@
+﻿@model MusicStreamingService.Controllers.TrackDetailStatViewModel
+@{
+    ViewData["Title"] = $"Статистика: {Model.Track.Title}";
+}
+
+<div class="container">
+    <h2>Детальная статистика трека</h2>
+
+    <!-- Информация о треке -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h4>@Model.Track.Title</h4>
+                    <p class="mb-1">
+                        <strong>Исполнитель:</strong> @Model.Track.Artist?.Name
+                    </p>
+                    <p class="mb-1">
+                        <strong>Альбом:</strong> @(Model.Track.Album?.Title ?? "Не указан")
+                    </p>
+                    <p class="mb-1">
+                        <strong>Жанр:</strong> @Model.Track.Genre?.Name
+                    </p>
+                    <p class="mb-1">
+                        <strong>Длительность:</strong> @TimeSpan.FromSeconds(Model.Track.Duration).ToString(@"mm\:ss")
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <!-- Фильтр по периоду -->
+                    <div class="mb-3">
+                        <select id="periodSelect" class="form-control" onchange="changePeriod()">
+                            @foreach (var period in ViewBag.Periods)
+                            {
+                                <option value="@period.Key" selected="@(Model.Period == period.Key)">
+                                    @period.Value
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основная статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Всего прослушиваний</h5>
+                    <h2 class="display-4 text-primary">@Model.TotalListens</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Первое прослушивание</h5>
+                    <h4 class="text-info">@(Model.FirstListen?.ToString("dd.MM.yyyy HH:mm") ?? "Нет данных")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Последнее прослушивание</h5>
+                    <h4 class="text-success">@(Model.LastListen?.ToString("dd.MM.yyyy HH:mm") ?? "Нет данных")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Среднее в день</h5>
+                    @{
+                        var avgPerDay = Model.DailyStats.Any() ?
+                        Model.DailyStats.Average(ds => ds.ListenCount).ToString("0.00") : "0";
+                    }
+                    <h2 class="display-4 text-warning">@avgPerDay</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ежедневная статистика -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar-alt me-2"></i> Ежедневная статистика
+                <span class="badge bg-secondary ms-2">Последние 30 дней</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.DailyStats.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Прослушивания</th>
+                                <th>Прогресс</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var maxListens = Model.DailyStats.Max(ds => ds.ListenCount);
+                                foreach (var dayStat in Model.DailyStats.OrderByDescending(ds => ds.Date))
+                                {
+                                    var percentage = maxListens > 0 ?
+                                    (dayStat.ListenCount * 100 / maxListens) : 0;
+                                    <tr>
+                                        <td>@dayStat.Date.ToString("dd.MM.yyyy")</td>
+                                        <td>
+                                            <span class="badge @GetBadgeClass(dayStat.ListenCount)">
+                                                @dayStat.ListenCount
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-@GetProgressBarClass(dayStat.ListenCount)"
+                                                     role="progressbar"
+                                                     style="width: @percentage%"
+                                                     aria-valuenow="@dayStat.ListenCount"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="@maxListens">
+                                                    @dayStat.ListenCount
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-area fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Нет данных за выбранный период</h5>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="/Statistics/Tracks" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад к списку треков
+        </a>
+        <a href="/Tracks/Play/@Model.Track.Id" class="btn btn-primary ms-2">
+            <i class="fas fa-play me-1"></i> Слушать трек
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changePeriod() {
+            const period = document.getElementById('periodSelect').value;
+            const currentUrl = window.location.pathname + window.location.search.split('?')[0];
+            window.location.href = currentUrl + '?period=' + period;
+        }
+    </script>
+}
+
+@functions {
+    string GetBadgeClass(int listens)
+    {
+        return listens switch
+        {
+            > 100 => "bg-success",
+            > 50 => "bg-primary",
+            > 20 => "bg-info",
+            > 10 => "bg-warning",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetProgressBarClass(int listens)
+    {
+        return listens switch
+        {
+            > 100 => "success",
+            > 50 => "primary",
+            > 20 => "info",
+            > 10 => "warning",
+            _ => "secondary"
+        };
+    }
+}
