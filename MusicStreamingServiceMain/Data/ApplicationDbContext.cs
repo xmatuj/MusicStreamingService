@@ -72,6 +72,13 @@ namespace MusicStreamingService.Data
                 .WithMany(t => t.PlaylistTracks)
                 .HasForeignKey(pt => pt.TrackId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Добавляем связь между Track и User (кто загрузил трек)
+            modelBuilder.Entity<Track>()
+                .HasOne(t => t.UploadedByUser)
+                .WithMany()
+                .HasForeignKey(t => t.UploadedByUserId)
+                .OnDelete(DeleteBehavior.SetNull); // При удалении пользователя не удаляем треки
         }
     }
 }

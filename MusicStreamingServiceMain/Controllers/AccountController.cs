@@ -157,6 +157,25 @@ namespace MusicStreamingService.Controllers
                 return RedirectToAction("Login");
             }
 
+            // Загружаем треки музыканта, если он музыкант
+            if (user.Role == UserRole.Musician)
+            {
+                var musicianTracks = await _context.Tracks
+                    .Include(t => t.Artist)
+                    .Include(t => t.Genre)
+                    .Include(t => t.Album)
+                    .Include(t => t.Moderations)
+                    .Where(t => t.UploadedByUserId == user.Id) // Используем UploadedByUserId
+                    .OrderByDescending(t => t.Id)
+                    .ToListAsync();
+
+                ViewBag.MusicianTracks = musicianTracks;
+            }
+            else
+            {
+                ViewBag.MusicianTracks = new List<Track>();
+            }
+
             await CheckAndUpdateUserRole(user);
             return View(user);
         }

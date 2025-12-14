@@ -62,6 +62,16 @@ namespace MusicStreamingService.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Получаем текущего пользователя
+                var username = User.Identity.Name;
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+                if (currentUser == null)
+                {
+                    TempData["ErrorMessage"] = "Пользователь не найден";
+                    return RedirectToAction("Profile", "Account");
+                }
+
                 // Сохранение аудиофайла
                 var audioFileName = await SaveAudioFile(model.AudioFile);
 
@@ -73,7 +83,8 @@ namespace MusicStreamingService.Controllers
                     GenreId = model.GenreId,
                     AlbumId = model.AlbumId,
                     ArtistId = model.ArtistId,
-                    IsModerated = false // Требует модерации
+                    IsModerated = false,
+                    UploadedByUserId = currentUser.Id // Сохраняем ID пользователя
                 };
 
                 _context.Tracks.Add(track);
@@ -90,13 +101,15 @@ namespace MusicStreamingService.Controllers
                         TrackId = track.Id,
                         ModeratorId = admin.Id, // Используем реального администратора
                         Status = ModerationStatus.Pending,
-                        Comment = "Ожидает модерации"
+                        Comment = "Ожидает модерации",
+                        ModerationDate = DateTime.UtcNow
                     };
                     _context.Moderations.Add(moderation);
                     await _context.SaveChangesAsync();
                 }
 
-                return RedirectToAction("Index", "Home");
+                TempData["SuccessMessage"] = "Трек успешно загружен и отправлен на модерацию!";
+                return RedirectToAction("Profile", "Account");
             }
 
             ViewBag.Artists = await _context.Artists.ToListAsync();
