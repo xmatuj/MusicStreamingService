@@ -164,57 +164,6 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
-    <style>
-        .playlist-cover-large {
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .cover-image-large {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .playlist-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            margin-top: 1rem;
-        }
-        
-        .playlist-info {
-            color: white;
-        }
-        
-        .playlist-meta {
-            opacity: 0.9;
-        }
-        
-        .handle {
-            cursor: move;
-        }
-        
-        .position-cell {
-            min-width: 60px;
-        }
-        
-        tr:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .sortable-ghost {
-            opacity: 0.4;
-            background-color: #e9ecef;
-        }
-        
-        .sortable-chosen {
-            background-color: #f8f9fa;
-        }
-    </style>
-    
     <script>
         // Drag & Drop для изменения порядка треков
         document.addEventListener('DOMContentLoaded', function() {
