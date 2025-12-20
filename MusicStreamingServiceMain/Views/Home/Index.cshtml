@@ -24,7 +24,7 @@
                        required
                        value="@ViewBag.SearchQuery" />
                 <button type="submit" class="search-button">
-                    <i class="fas fa-search"></i>
+                    <i class="bi bi-search"></i>
                 </button>
             </div>
         </form>
@@ -50,11 +50,11 @@
                             <div style="width: 150px; height: 150px; background: @track.ColorHash;
                                         border-radius: 8px; display: flex; align-items: center;
                                         justify-content: center; color: white; font-size: 2rem;">
-                                <i class="fas fa-music"></i>
+                                <i class="bi bi-music"></i>
                             </div>
                         }
                         <button class="play-button" data-track-id="@track.Id">
-                            <i class="fas fa-play"></i>
+                            <i class="bi bi-play"></i>
                         </button>
                     </div>
                     <div class="track-info">
@@ -67,7 +67,8 @@
                         <button class="add-to-playlist-btn"
                                 data-track-id="@track.Id"
                                 title="Добавить в плейлист">
-                            <i class="fas fa-plus"></i>
+                            <i class="bi bi-plus"></i>
+                        </button>
                     </div>
                 </div>
             }
@@ -75,6 +76,7 @@
     </section>
 
     <!-- "Новые релизы" -->
+    <section>
     <div class="albums-grid">
         @foreach (var album in Model.NewReleases)
         {
@@ -87,11 +89,11 @@
                     else
                     {
                         <div class="no-cover-placeholder">
-                            <i class="fas fa-compact-disc"></i>
+                            <i class="bi bi-compact-disc"></i>
                         </div>
                     }
                     <button class="play-button">
-                        <i class="fas fa-play"></i>
+                        <i class="bi bi-play"></i>
                     </button>
                 </div>
                 <div class="album-info">
@@ -105,7 +107,9 @@
     </section>
 
     <!-- "Избранные исполнители" -->
-    <div class="artists-grid">
+    <section>
+        <h2 class="section-title">Популярные исполнители</h2>
+        <div class="artists-grid">
         @foreach (var artist in Model.FeaturedArtists)
         {
             <div class="artist-card">
@@ -117,7 +121,7 @@
                     else
                     {
                         <div class="no-photo-placeholder">
-                            <i class="fas fa-user"></i>
+                            <i class="bi bi-user"></i>
                         </div>
                     }
                 </div>
@@ -128,19 +132,20 @@
             </div>
         }
     </div>
+    </section>
 </div>
 
 <!-- Музыкальный плеер -->
 <div class="music-player" id="musicPlayer" style="display: none;">
     <div class="player-controls">
         <button class="control-btn" onclick="previousTrack()">
-            <i class="fas fa-step-backward"></i>
+            <i class="bi bi-skip-backward"></i>
         </button>
         <button class="control-btn play-btn" id="playBtn" onclick="togglePlay()">
-            <i class="fas fa-play" id="playIcon"></i>
+            <i class="bi bi-play" id="playIcon"></i>
         </button>
         <button class="control-btn" onclick="nextTrack()">
-            <i class="fas fa-step-forward"></i>
+            <i class="bi bi-skip-forward"></i>
         </button>
     </div>
 
@@ -163,7 +168,7 @@
 
     <div class="player-options">
         <button class="option-btn" onclick="toggleMuteGlobal()">
-            <i class="fas fa-volume-up" id="volumeIcon"></i>
+            <i class="bi bi-volume-up" id="volumeIcon"></i>
         </button>
         <input type="range" min="0" max="100" value="50" class="volume-slider"
                id="volumeSlider" oninput="setVolumeGlobal(this.value)">
@@ -253,9 +258,9 @@
         function updatePlayButton() {
             const playIcon = document.getElementById('playIcon');
             if (isPlaying) {
-                playIcon.className = 'fas fa-pause';
+                playIcon.className = 'bi bi-pause';
             } else {
-                playIcon.className = 'fas fa-play';
+                playIcon.className = 'bi bi-play';
             }
         }
 
@@ -291,7 +296,7 @@
 
             currentAudio.muted = !currentAudio.muted;
             const volumeIcon = document.getElementById('volumeIcon');
-            volumeIcon.className = currentAudio.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+            volumeIcon.className = currentAudio.muted ? 'bi bi-volume-mute' : 'bi bi-volume-up';
         }
 
         // Навигация по трекам

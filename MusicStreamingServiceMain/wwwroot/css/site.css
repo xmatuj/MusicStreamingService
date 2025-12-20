@@ -1,6 +1,3 @@
-/* wwwroot/css/site.css */
-/* Основной CSS файл музыкального стримингового сервиса */
-
 /* ===== ГЛОБАЛЬНЫЕ НАСТРОЙКИ ===== */
 html {
     position: relative;
@@ -306,7 +303,7 @@ body {
 }
 
 .like-button, .add-to-playlist-btn {
-    background-color: Blue;
+    background-color: lightblue;
     border: none;
     color: #666;
     cursor: pointer;
@@ -476,7 +473,7 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 100%);
+    background: linear-gradient(90deg, #547ba3 0%, #2d2d2d 100%);
     color: white;
     padding: 12px 20px;
     display: flex !important;
@@ -497,7 +494,7 @@ body {
 }
 
 .control-btn {
-    background-color: Blue !important;
+    background-color: lightsteelblue !important;
     border: none !important;
     font-size: 1.3rem !important;
     color: #fff !important;
@@ -521,7 +518,7 @@ body {
     }
 
 .play-btn {
-    background-color: #007bff !important;
+    background-color: lightblue !important;
     color: white !important;
     width: 45px !important;
     height: 45px !important;

@@ -30,12 +30,11 @@
                         <div class="form-group mb-4">
                             <label asp-for="Visibility" class="form-label">Видимость плейлиста</label>
                             <select asp-for="Visibility" class="form-control">
-                                <option value="@MusicStreamingService.Models.PlaylistVisibility.Private">Приватный (только я)</option>
-                                <option value="@MusicStreamingService.Models.PlaylistVisibility.Public">Публичный (видят все)</option>
-                                <option value="@MusicStreamingService.Models.PlaylistVisibility.Unlisted">Скрытый (только по ссылке)</option>
+                                <option value="@MusicStreamingService.Models.PlaylistVisibility.Private">Приватный</option>
+                                <option value="@MusicStreamingService.Models.PlaylistVisibility.Public">Публичный</option>
                             </select>
                             <small class="form-text text-muted">
-                                Приватные плейлисты видны только вам. Публичные видны всем пользователям.
+                                Приватные плейлисты видны только вам. Публичные видны всем пользователям у которых есть ссылка.
                             </small>
                         </div>
 
