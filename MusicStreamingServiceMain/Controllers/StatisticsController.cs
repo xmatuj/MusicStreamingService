@@ -75,7 +75,7 @@ namespace MusicStreamingService.Controllers
                 .OrderByDescending(ts => ts.TotalListens)
                 .ToListAsync();
 
-            // Если есть поиск, фильтруем результаты на клиенте (на всякий случай)
+            // Если есть поиск, фильтруем результаты на клиенте
             if (!string.IsNullOrEmpty(search))
             {
                 var searchLower = search.ToLower();

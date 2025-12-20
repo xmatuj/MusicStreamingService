@@ -239,7 +239,7 @@
             updatePlayButton();
 
             // Логируем прослушивание
-            fetch(`/Tracks/RecordPlay/${trackId}`, { method: 'POST' });
+            fetch(`/Tracks/RecordPlay/${trackId}`);
         }
 
         // Управление воспроизведением
@@ -321,12 +321,6 @@
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Лайк трека
-        function likeTrack(trackId) {
-            // В будущем можно добавить функционал лайков
-            console.log('Liked track:', trackId);
         }
             // Функция добавления трека в плейлист
         function addToPlaylist(trackId) {

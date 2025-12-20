@@ -190,6 +190,9 @@ function startPlayback(trackId, trackCard) {
         currentAudio = null;
     }
 
+    // Логируем прослушивание
+    fetch(`/Tracks/RecordPlay/${trackId}`);
+
     // Сбрасываем пометку у всех треков
     document.querySelectorAll('.track-card[data-playing="true"], .album-card[data-playing="true"]').forEach(card => {
         card.removeAttribute('data-playing');

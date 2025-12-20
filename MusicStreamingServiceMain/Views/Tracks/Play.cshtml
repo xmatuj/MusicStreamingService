@@ -72,12 +72,5 @@
             likeBtn.classList.remove('btn-outline-danger');
             likeBtn.classList.add('btn-danger');
         });
-
-        // Загрузка похожих треков
-        fetch('/Tracks/Similar?genreId=@Model.GenreId&currentTrackId=@Model.Id')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('similarTracks').innerHTML = html;
-            });
     </script>
 }

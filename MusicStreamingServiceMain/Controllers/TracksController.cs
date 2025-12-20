@@ -195,7 +195,8 @@ namespace MusicStreamingService.Controllers
         }
 
         // POST: Запись прослушивания трека
-        [HttpPost]
+        [HttpGet]
+        [Route("Tracks/RecordPlay/{id}")]
         public async Task<IActionResult> RecordPlay(int id)
         {
             var track = await _context.Tracks.FindAsync(id);
