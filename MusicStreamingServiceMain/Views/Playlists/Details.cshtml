@@ -3,7 +3,8 @@
     ViewData["Title"] = Model.Title;
 }
 
-<div class="container">
+<div class="container" style="padding-bottom: 100px;">
+    <!-- Добавили отступ снизу для плеера -->
     <!-- Заголовок плейлиста -->
     <div class="playlist-header mb-4">
         <div class="row align-items-center">
@@ -48,18 +49,19 @@
                         </span>
                     </div>
                     <div class="playlist-actions mt-3">
-                        <button class="btn btn-primary btn-lg me-2">
+                        <!-- Кнопка "Слушать" теперь запускает первый трек -->
+                        <button class="btn btn-primary btn-lg me-2" onclick="playFirstTrack()">
                             <i class="fas fa-play me-1"></i> Слушать
                         </button>
                         @if (User.Identity?.Name == Model.User.Username)
                         {
-                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-lg me-2">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-secondary btn-lg me-2">
                                 <i class="fas fa-edit me-1"></i> Редактировать
                             </a>
-                            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" 
+                            <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
                                   onsubmit="return confirm('Удалить плейлист?');" class="d-inline">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-outline-danger btn-lg">
+                                <button type="submit" class="btn btn-danger btn-lg">
                                     <i class="fas fa-trash me-1"></i> Удалить
                                 </button>
                             </form>
@@ -97,35 +99,36 @@
                             @foreach (var playlistTrack in Model.PlaylistTracks.OrderBy(pt => pt.Position))
                             {
                                 var track = playlistTrack.Track;
-                                <tr data-track-id="@track.Id">
-                                    <td class="position-cell">
-                                        <i class="fas fa-grip-vertical text-muted handle" style="cursor: move;"></i>
-                                        <span class="position-number ms-2">@(playlistTrack.Position + 1)</span>
+                                <!-- Добавлены data-атрибуты для JS плеера -->
+                                <tr class="track-row"
+                                    data-track-id="@track.Id"
+                                    data-title="@track.Title"
+                                    data-artist="@(track.Artist?.Name ?? "Неизвестный")"
+                                    data-duration="@track.Duration">
+
+                                    <td class="position-cell align-middle">
+                                        <!-- Кнопка Play вместо номера при наведении (реализуется CSS/JS или просто кнопка) -->
+                                        <button class="btn btn-sm btn-light rounded-circle play-track-btn"
+                                                onclick="playTrackFromList('@track.Id')">
+                                            <i class="fas fa-play text-primary"></i>
+                                        </button>
                                     </td>
-                                    <td>
-                                        <!-- Маленькая обложка рядом с названием -->
+                                    <td class="align-middle">
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             @if (!string.IsNullOrEmpty(track.CoverImage))
                                             {
                                                 <img src="@track.CoverImage" alt="@track.Title"
                                                      style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />
                                             }
-                                            <div>
-                                                <a href="/Tracks/Play/@track.Id" class="text-decoration-none">
-                                                    <strong>@track.Title</strong>
-                                                </a>
+                                            <div class="cursor-pointer" onclick="playTrackFromList('@track.Id')">
+                                                <strong>@track.Title</strong>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
-                                        <a href="/Tracks/Play/@track.Id" class="text-decoration-none">
-                                            <strong>@track.Title</strong>
-                                        </a>
-                                    </td>
-                                    <td>@track.Artist?.Name</td>
-                                    <td>@track.Album?.Title</td>
-                                    <td>@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</td>
-                                    <td>
+                                    <td class="align-middle">@track.Artist?.Name</td>
+                                    <td class="align-middle">@track.Album?.Title</td>
+                                    <td class="align-middle">@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</td>
+                                    <td class="align-middle">
                                         <form method="post"
                                               action="/Playlists/RemoveTrack"
                                               class="d-inline"
@@ -162,120 +165,292 @@
     </div>
 </div>
 
+<!-- === МУЗЫКАЛЬНЫЙ ПЛЕЕР (Скопировано из Home/Index.cshtml) === -->
+<div class="music-player" id="musicPlayer" style="display: none;">
+    <div class="player-controls">
+        <button class="control-btn" onclick="previousTrack()">
+            <i class="bi bi-skip-backward"></i>
+        </button>
+        <button class="control-btn play-btn" id="playBtn" onclick="togglePlay()">
+            <i class="bi bi-play" id="playIcon"></i>
+        </button>
+        <button class="control-btn" onclick="nextTrack()">
+            <i class="bi bi-skip-forward"></i>
+        </button>
+    </div>
+
+    <div class="player-info">
+        <div class="track-now-playing">
+            <span class="track-name" id="currentTrackName">Выберите трек</span>
+            <span class="artist-name" id="currentArtistName">для воспроизведения</span>
+        </div>
+    </div>
+
+    <div class="player-progress">
+        <div class="progress-bar" onclick="seek(event)">
+            <div class="progress" id="progressBar"></div>
+        </div>
+        <div class="time-display">
+            <span class="current-time" id="currentTime">0:00</span>
+            <span class="total-time" id="totalTime">0:00</span>
+        </div>
+    </div>
+
+    <div class="player-options">
+        <button class="option-btn" onclick="toggleMuteGlobal()">
+            <i class="bi bi-volume-up" id="volumeIcon"></i>
+        </button>
+        <input type="range" min="0" max="100" value="50" class="volume-slider"
+               id="volumeSlider" oninput="setVolumeGlobal(this.value)">
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
     <script>
-        // Drag & Drop для изменения порядка треков
+        // === ЛОГИКА ПЛЕЕРА ДЛЯ СТРАНИЦЫ ПЛЕЙЛИСТА ===
+
+        let currentTrackIndex = 0;
+        let tracks = [];
+
         document.addEventListener('DOMContentLoaded', function() {
-            const playlistId = @Model.Id;
+            // 1. Собираем массив треков из таблицы
+            const trackRows = document.querySelectorAll('.track-row');
+            tracks = Array.from(trackRows).map(row => ({
+                id: row.dataset.trackId,
+                title: row.dataset.title,
+                artist: row.dataset.artist,
+                duration: parseInt(row.dataset.duration)
+            }));
+
+            console.log("Плейлист загружен, треков:", tracks.length);
+
+            // 2. Инициализация Drag & Drop (сортировки)
             const tbody = document.getElementById('playlistTracksBody');
-            
             if (tbody) {
-                const sortable = Sortable.create(tbody, {
+                new Sortable(tbody, {
                     handle: '.handle',
                     animation: 150,
                     ghostClass: 'sortable-ghost',
-                    chosenClass: 'sortable-chosen',
-                    
-                    onEnd: function(evt) {
-                        // Обновляем номера позиций
-                        updatePositionNumbers();
-                        
-                        // Сохраняем новый порядок на сервере
-                        saveNewOrder();
+                    onEnd: function (evt) {
+                         // Тут можно добавить отправку нового порядка на сервер
                     }
                 });
             }
-            
-            // Обновление номеров позиций
-            function updatePositionNumbers() {
-                const rows = tbody.querySelectorAll('tr');
-                rows.forEach((row, index) => {
-                    const positionNumber = row.querySelector('.position-number');
-                    if (positionNumber) {
-                        positionNumber.textContent = index + 1;
-                    }
-                });
-            }
-            
-            // Сохранение нового порядка на сервере
-            function saveNewOrder() {
-                const trackIds = Array.from(tbody.querySelectorAll('tr'))
-                    .map(row => parseInt(row.dataset.trackId));
-                
-                fetch('/Playlists/Reorder', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    },
-                    body: JSON.stringify({
-                        playlistId: playlistId,
-                        trackIds: trackIds
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        console.error('Ошибка при сохранении порядка:', data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                });
-            }
-            
-            // Удаление трека из плейлиста
-            document.querySelectorAll('.remove-track-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const playlistId = this.dataset.playlistId;
-                    const trackId = this.dataset.trackId;
-                    const trackRow = this.closest('tr');
-                    
-                    if (confirm('Удалить этот трек из плейлиста?')) {
-                        fetch('/Playlists/RemoveTrack', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                            },
-                            body: JSON.stringify({
-                                playlistId: playlistId,
-                                trackId: trackId
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                trackRow.remove();
-                                updatePositionNumbers();
-                                
-                                // Показываем сообщение об успехе
-                                showToast('Трек удален из плейлиста', 'success');
-                                
-                                // Обновляем счетчик треков
-                                const badge = document.querySelector('.badge.bg-secondary');
-                                if (badge) {
-                                    const currentCount = parseInt(badge.textContent);
-                                    badge.textContent = currentCount - 1;
-                                }
-                            } else {
-                                showToast(data.message, 'error');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Ошибка:', error);
-                            showToast('Произошла ошибка при удалении трека', 'error');
-                        });
-                    }
-                });
-            });
-            
-            // Функция для показа уведомлений
-            function showToast(message, type) {
-                // Простая реализация уведомления
-                alert(message);
-            }
+
+            // 3. ПЕРЕОПРЕДЕЛЕНИЕ КНОПОК ПЛЕЕРА
+            // Используем setTimeout, чтобы гарантировать выполнение после site.js
+            setTimeout(function() {
+                const prevBtn = document.querySelector('.player-controls .control-btn:first-child');
+                const nextBtn = document.querySelector('.player-controls .control-btn:last-child');
+                const playBtn = document.querySelector('.player-controls .play-btn');
+
+                // Очищаем события, навешанные site.js, и ставим свои
+                if (prevBtn) {
+                    prevBtn.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.previousTrack();
+                    };
+                }
+
+                if (nextBtn) {
+                    nextBtn.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.nextTrack();
+                    };
+                }
+
+                if (playBtn) {
+                    playBtn.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.togglePlay();
+                    };
+                }
+            }, 200); // Небольшая задержка для надежности
         });
+
+
+        // === ГЛОБАЛЬНЫЕ ФУНКЦИИ УПРАВЛЕНИЯ ===
+
+        // Воспроизведение конкретного трека по ID
+        window.playTrackFromList = function(id) {
+            const index = tracks.findIndex(t => t.id === id);
+            if (index !== -1) {
+                // Снимаем иконку паузы с предыдущего трека
+                updateRowIcon(currentTrackIndex, false);
+
+                currentTrackIndex = index;
+                const track = tracks[currentTrackIndex];
+                playTrack(track.id, track.title, track.artist, track.duration);
+            }
+        };
+
+        // Воспроизведение первого трека (кнопка "Слушать")
+        window.playFirstTrack = function() {
+            if (tracks.length > 0) {
+                updateRowIcon(currentTrackIndex, false);
+                currentTrackIndex = 0;
+                const track = tracks[0];
+                playTrack(track.id, track.title, track.artist, track.duration);
+            }
+        };
+
+        // Основная логика воспроизведения
+        window.playTrack = function(trackId, title, artist, duration) {
+            // 1. Пауза текущего
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+
+            // 2. Показываем плеер
+            const playerElement = document.getElementById('musicPlayer');
+            if (playerElement) playerElement.style.display = 'flex';
+
+            // 3. Обновляем тексты в плеере
+            document.getElementById('currentTrackName').textContent = title;
+            document.getElementById('currentArtistName').textContent = artist;
+            document.getElementById('totalTime').textContent = formatTime(duration);
+
+            // 4. Подсветка в таблице
+            document.querySelectorAll('.track-row').forEach(row => {
+                row.classList.remove('table-active');
+                // Сбрасываем иконки кнопок в таблице
+                const btnIcon = row.querySelector('.play-track-btn i');
+                if(btnIcon) btnIcon.className = 'fas fa-play text-primary';
+
+                if(row.dataset.trackId === trackId) {
+                    row.classList.add('table-active');
+                    // Ставим иконку паузы для текущего
+                    if(btnIcon) btnIcon.className = 'fas fa-pause text-primary';
+                }
+            });
+
+            // 5. Создаем аудио объект (используем глобальную переменную)
+            currentAudio = new Audio(`/Tracks/Stream/${trackId}`);
+
+            currentAudio.addEventListener('timeupdate', updateProgress);
+            currentAudio.addEventListener('ended', function() {
+                window.nextTrack();
+            });
+            currentAudio.addEventListener('loadedmetadata', function() {
+                if(!isNaN(currentAudio.duration)) {
+                   document.getElementById('totalTime').textContent = formatTime(currentAudio.duration);
+                }
+            });
+
+            // 6. Запуск
+            currentAudio.play()
+                .then(() => {
+                    isPlaying = true;
+                    updatePlayButtonIcon();
+                })
+                .catch(e => console.error("Ошибка:", e));
+
+            // Статистика
+            fetch(`/Tracks/RecordPlay/${trackId}`);
+        };
+
+        // Пауза / Пуск
+        window.togglePlay = function() {
+            if (!currentAudio) return;
+
+            if (isPlaying) {
+                currentAudio.pause();
+            } else {
+                currentAudio.play();
+            }
+            isPlaying = !isPlaying;
+            updatePlayButtonIcon();
+            updateRowIcon(currentTrackIndex, isPlaying);
+        };
+
+        // Следующий трек
+        window.nextTrack = function() {
+            if (tracks.length === 0) return;
+
+            updateRowIcon(currentTrackIndex, false); // Сброс иконки старого трека
+
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            const track = tracks[currentTrackIndex];
+            playTrack(track.id, track.title, track.artist, track.duration);
+        };
+
+        // Предыдущий трек
+        window.previousTrack = function() {
+            if (tracks.length === 0) return;
+
+            updateRowIcon(currentTrackIndex, false); // Сброс иконки старого трека
+
+            currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+            const track = tracks[currentTrackIndex];
+            playTrack(track.id, track.title, track.artist, track.duration);
+        };
+
+        // Обновление иконки в самом плеере (внизу страницы)
+        function updatePlayButtonIcon() {
+            const playIcon = document.getElementById('playIcon');
+            if (playIcon) {
+                playIcon.className = isPlaying ? 'bi bi-pause' : 'bi bi-play';
+            }
+        }
+
+        // Обновление иконки в строке таблицы (play/pause)
+        function updateRowIcon(index, isPlayingNow) {
+            if (!tracks[index]) return;
+            const id = tracks[index].id;
+            const row = document.querySelector(`.track-row[data-track-id="${id}"]`);
+            if (row) {
+                const btnIcon = row.querySelector('.play-track-btn i');
+                if (btnIcon) {
+                    btnIcon.className = isPlayingNow ? 'fas fa-pause text-primary' : 'fas fa-play text-primary';
+                }
+            }
+        }
+
+        // Прогресс бар
+        function updateProgress() {
+            if (!currentAudio) return;
+            const progressBar = document.getElementById('progressBar');
+            const currentTimeEl = document.getElementById('currentTime');
+
+            if (progressBar && !isNaN(currentAudio.duration)) {
+                const progress = (currentAudio.currentTime / currentAudio.duration) * 100;
+                progressBar.style.width = progress + '%';
+            }
+            if (currentTimeEl) {
+                currentTimeEl.textContent = formatTime(currentAudio.currentTime);
+            }
+        }
+
+        // Перемотка
+        window.seek = function(event) {
+            if (!currentAudio) return;
+            const progressBar = event.currentTarget;
+            const rect = progressBar.getBoundingClientRect();
+            const percent = (event.clientX - rect.left) / rect.width;
+            currentAudio.currentTime = percent * currentAudio.duration;
+        };
+
+        // Вспомогательные
+        window.setVolumeGlobal = function(value) {
+            if (currentAudio) currentAudio.volume = value / 100;
+        };
+
+        window.toggleMuteGlobal = function() {
+            if (!currentAudio) return;
+            currentAudio.muted = !currentAudio.muted;
+            const icon = document.getElementById('volumeIcon');
+            if(icon) icon.className = currentAudio.muted ? 'bi bi-volume-mute' : 'bi bi-volume-up';
+        };
+
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return "0:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
     </script>
 }
