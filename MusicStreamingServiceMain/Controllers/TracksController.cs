@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MusicStreamingService.Data;
 using MusicStreamingService.Models;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authorization;
 
 namespace MusicStreamingService.Controllers
 {
@@ -11,11 +12,13 @@ namespace MusicStreamingService.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly ILogger<TracksController> _logger;
 
-        public TracksController(ApplicationDbContext context, IWebHostEnvironment environment)
+        public TracksController(ApplicationDbContext context, IWebHostEnvironment environment, ILogger<TracksController> logger)
         {
             _context = context;
             _environment = environment;
+            _logger = logger;
         }
         // Похожие треки
         public async Task<IActionResult> Similar(int genreId, int currentTrackId)
@@ -49,9 +52,27 @@ namespace MusicStreamingService.Controllers
                 return RedirectToAction("Profile", "Account");
             }
 
-            ViewBag.Artists = await _context.Artists.ToListAsync();
-            ViewBag.Genres = await _context.Genres.ToListAsync();
-            ViewBag.Albums = await _context.Albums.ToListAsync();
+            ViewBag.Artists = await _context.Artists
+                .OrderBy(a => a.Name)
+                .ToListAsync();
+
+            ViewBag.Genres = await _context.Genres
+                .OrderBy(g => g.Name)
+                .ToListAsync();
+
+            // Загружаем все альбомы для начального состояния
+            ViewBag.Albums = await _context.Albums
+                .Include(a => a.Artist)
+                .OrderBy(a => a.Title)
+                .Select(a => new
+                {
+                    id = a.Id,
+                    title = a.Title,
+                    artistId = a.ArtistId,
+                    artistName = a.Artist.Name
+                })
+                .ToListAsync();
+
             return View();
         }
 
@@ -116,6 +137,54 @@ namespace MusicStreamingService.Controllers
             ViewBag.Genres = await _context.Genres.ToListAsync();
             ViewBag.Albums = await _context.Albums.ToListAsync();
             return View(model);
+        }
+
+        // POST: /Tracks/CreateAlbum - Создание альбома на лету
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CreateAlbum(string title, int artistId)
+        {
+            try
+            {
+                // Проверяем права пользователя
+                var username = User.Identity.Name;
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+                if (currentUser == null || !currentUser.CanUploadTracks)
+                {
+                    return Json(new { success = false, message = "У вас нет прав для создания альбомов" });
+                }
+
+                // Проверяем существование исполнителя
+                var artist = await _context.Artists.FindAsync(artistId);
+                if (artist == null)
+                {
+                    return Json(new { success = false, message = "Исполнитель не найден" });
+                }
+
+                // Создаем новый альбом
+                var album = new Album
+                {
+                    Title = title.Trim(),
+                    ArtistId = artistId,
+                    ReleaseDate = DateTime.Now
+                };
+
+                _context.Albums.Add(album);
+                await _context.SaveChangesAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    albumId = album.Id,
+                    message = "Альбом успешно создан"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при создании альбома");
+                return Json(new { success = false, message = "Ошибка при создании альбома: " + ex.Message });
+            }
         }
 
         // GET: Воспроизведение трека

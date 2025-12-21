@@ -12,9 +12,10 @@ namespace MusicStreamingService.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(ApplicationDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         // Главная страница админки

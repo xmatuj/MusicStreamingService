@@ -1,68 +1,283 @@
 ﻿@model MusicStreamingService.Controllers.TrackCreateViewModel
 @{
-    ViewData["Title"] = "Добавить трек";
+    ViewData["Title"] = "Добавление трека";
 }
 
 <div class="container">
-    <h2>Добавить новый трек</h2>
-
-    <form asp-action="Create" method="post" enctype="multipart/form-data" class="mt-4">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label asp-for="Title" class="control-label">Название трека</label>
-                    <input asp-for="Title" class="form-control" />
-                    <span asp-validation-for="Title" class="text-danger"></span>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center mb-0">Добавление нового трека</h3>
                 </div>
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
 
-                <div class="form-group">
-                    <label asp-for="AudioFile" class="control-label">Аудиофайл</label>
-                    <input type="file" asp-for="AudioFile" class="form-control" accept="audio/*" />
-                    <span asp-validation-for="AudioFile" class="text-danger"></span>
-                </div>
+                    <form asp-action="Create" method="post" enctype="multipart/form-data" id="trackForm">
+                        @Html.AntiForgeryToken()
 
-                <div class="form-group">
-                    <label asp-for="Duration" class="control-label">Длительность (секунды)</label>
-                    <input asp-for="Duration" class="form-control" type="number" />
-                    <span asp-validation-for="Duration" class="text-danger"></span>
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="form-label">Название трека *</label>
+                            <input asp-for="Title" class="form-control" placeholder="Введите название трека" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="ArtistId" class="form-label">Исполнитель *</label>
+                            <select asp-for="ArtistId" class="form-control" id="artistSelect" required>
+                                <option value="">-- Выберите исполнителя --</option>
+                                @foreach (var artist in ViewBag.Artists)
+                                {
+                                    <option value="@artist.Id">@artist.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="ArtistId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="AlbumId" class="form-label">Альбом (опционально)</label>
+                            <select asp-for="AlbumId" class="form-control" id="albumSelect" disabled>
+                                <option value="">-- Сначала выберите исполнителя --</option>
+                                <!-- Альбомы будут загружены динамически -->
+                            </select>
+                            <span asp-validation-for="AlbumId" class="text-danger"></span>
+                            <small class="text-muted">Выберите альбом, к которому относится трек</small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="GenreId" class="form-label">Жанр *</label>
+                            <select asp-for="GenreId" class="form-control" required>
+                                <option value="">-- Выберите жанр --</option>
+                                @foreach (var genre in ViewBag.Genres)
+                                {
+                                    <option value="@genre.Id">@genre.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="GenreId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="AudioFile" class="form-label">Аудиофайл *</label>
+                            <input asp-for="AudioFile" class="form-control" type="file" accept="audio/*" required />
+                            <span asp-validation-for="AudioFile" class="text-danger"></span>
+                            <small class="text-muted">Поддерживаемые форматы: MP3, WAV, OGG (макс. 50MB)</small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Duration" class="form-label">Длительность (секунды) *</label>
+                            <input asp-for="Duration" class="form-control" type="number" min="1" max="3600" value="180" />
+                            <span asp-validation-for="Duration" class="text-danger"></span>
+                            <small class="text-muted">Введите длительность трека в секундах (1-3600)</small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="/Account/Profile" class="btn btn-secondary me-md-2">Отмена</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i> Загрузить трек
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label asp-for="ArtistId" class="control-label">Исполнитель</label>
-                    <select asp-for="ArtistId" class="form-control" asp-items="@(new SelectList(ViewBag.Artists, "Id", "Name"))">
-                        <option value="">-- Выберите исполнителя --</option>
-                    </select>
-                    <span asp-validation-for="ArtistId" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="GenreId" class="control-label">Жанр</label>
-                    <select asp-for="GenreId" class="form-control" asp-items="@(new SelectList(ViewBag.Genres, "Id", "Name"))">
-                        <option value="">-- Выберите жанр --</option>
-                    </select>
-                    <span asp-validation-for="GenreId" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="AlbumId" class="control-label">Альбом (опционально)</label>
-                    <select asp-for="AlbumId" class="form-control" asp-items="@(new SelectList(ViewBag.Albums, "Id", "Title"))">
-                        <option value="">-- Выберите альбом --</option>
-                    </select>
-                </div>
+            <!-- Информация о процессе -->
+            <div class="alert alert-info mt-3">
+                <h6><i class="fas fa-info-circle me-2"></i> Важная информация</h6>
+                <ul class="mb-0">
+                    <li>После загрузки трек будет отправлен на модерацию</li>
+                    <li>Модерация обычно занимает 1-2 рабочих дня</li>
+                    <li>Вы можете отслеживать статус модерации в своем профиле</li>
+                    <li>Только одобренные треки будут доступны для прослушивания</li>
+                </ul>
             </div>
         </div>
-
-        <div class="form-group mt-3">
-            <button type="submit" class="btn btn-primary">Добавить трек</button>
-            <a href="/" class="btn btn-secondary">Отмена</a>
-        </div>
-    </form>
+    </div>
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const artistSelect = document.getElementById('artistSelect');
+            const albumSelect = document.getElementById('albumSelect');
+
+            // Сохраняем изначальные альбомы (все)
+            let allAlbums = @Html.Raw(Json.Serialize(ViewBag.Albums));
+
+            // Обработчик изменения исполнителя
+            artistSelect.addEventListener('change', function() {
+                const artistId = this.value;
+
+                if (artistId) {
+                    // Включаем select альбомов
+                    albumSelect.disabled = false;
+
+                    // Очищаем текущие опции
+                    albumSelect.innerHTML = '<option value="">-- Загрузка альбомов... --</option>';
+
+                    // Фильтруем альбомы по выбранному исполнителю
+                    const filteredAlbums = allAlbums.filter(album => album.artistId == artistId);
+
+                    // Обновляем список альбомов
+                    updateAlbumOptions(filteredAlbums);
+                } else {
+                    // Если исполнитель не выбран, отключаем и очищаем select альбомов
+                    albumSelect.disabled = true;
+                    albumSelect.innerHTML = '<option value="">-- Сначала выберите исполнителя --</option>';
+                }
+            });
+
+            function updateAlbumOptions(albums) {
+                // Очищаем select
+                albumSelect.innerHTML = '';
+
+                // Добавляем опцию "Без альбома"
+                const noAlbumOption = document.createElement('option');
+                noAlbumOption.value = '';
+                noAlbumOption.textContent = '-- Без альбома --';
+                albumSelect.appendChild(noAlbumOption);
+
+                // Добавляем опцию "Создать новый альбом"
+                const newAlbumOption = document.createElement('option');
+                newAlbumOption.value = 'new';
+                newAlbumOption.textContent = '-- + Создать новый альбом --';
+                albumSelect.appendChild(newAlbumOption);
+
+                // Добавляем альбомы исполнителя
+                if (albums && albums.length > 0) {
+                    albums.forEach(album => {
+                        const option = document.createElement('option');
+                        option.value = album.id;
+                        option.textContent = album.title;
+                        albumSelect.appendChild(option);
+                    });
+                } else {
+                    const noAlbumsOption = document.createElement('option');
+                    noAlbumsOption.value = '';
+                    noAlbumsOption.textContent = '-- У исполнителя нет альбомов --';
+                    albumSelect.appendChild(noAlbumsOption);
+                }
+
+                // Добавляем обработчик для создания нового альбома
+                albumSelect.addEventListener('change', function() {
+                    if (this.value === 'new') {
+                        createNewAlbum();
+                    }
+                });
+            }
+
+            function createNewAlbum() {
+                const artistId = artistSelect.value;
+                if (!artistId) {
+                    alert('Сначала выберите исполнителя');
+                    albumSelect.value = '';
+                    return;
+                }
+
+                const artistName = artistSelect.options[artistSelect.selectedIndex].text;
+
+                // Запрашиваем название нового альбома
+                const albumTitle = prompt(`Введите название нового альбома для исполнителя "${artistName}":`);
+
+                if (albumTitle && albumTitle.trim() !== '') {
+                    // Отправляем запрос на создание альбома
+                    fetch('/Tracks/CreateAlbum', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        },
+                        body: new URLSearchParams({
+                            'title': albumTitle,
+                            'artistId': artistId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Добавляем новый альбом в список
+                            const newAlbum = {
+                                id: data.albumId,
+                                title: albumTitle,
+                                artistId: parseInt(artistId)
+                            };
+
+                            allAlbums.push(newAlbum);
+                            updateAlbumOptions(allAlbums.filter(album => album.artistId == artistId));
+
+                            // Выбираем новый альбом
+                            albumSelect.value = data.albumId;
+
+                            alert('Альбом успешно создан!');
+                        } else {
+                            alert('Ошибка при создании альбома: ' + data.message);
+                            albumSelect.value = '';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Ошибка при создании альбома');
+                        albumSelect.value = '';
+                    });
+                } else {
+                    albumSelect.value = '';
+                }
+            }
+
+            // Если при загрузке уже выбран исполнитель, обновляем альбомы
+            if (artistSelect.value) {
+                artistSelect.dispatchEvent(new Event('change'));
+            }
+
+            // Валидация файла
+            const audioFileInput = document.querySelector('input[name="AudioFile"]');
+            audioFileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    // Проверяем размер файла (макс. 50MB)
+                    const maxSize = 50 * 1024 * 1024; // 50MB в байтах
+                    if (file.size > maxSize) {
+                        alert('Файл слишком большой. Максимальный размер: 50MB');
+                        this.value = '';
+                    }
+
+                    // Проверяем расширение файла
+                    const allowedExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.flac'];
+                    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+
+                    if (!allowedExtensions.includes(fileExtension)) {
+                        alert('Неподдерживаемый формат файла. Разрешенные форматы: ' + allowedExtensions.join(', '));
+                        this.value = '';
+                    }
+                }
+            });
+
+            // Автоматическое определение длительности при загрузке файла
+            audioFileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const audio = document.createElement('audio');
+                    audio.preload = 'metadata';
+
+                    audio.onloadedmetadata = function() {
+                        const durationInput = document.querySelector('input[name="Duration"]');
+                        if (durationInput && !isNaN(audio.duration) && audio.duration > 0) {
+                            durationInput.value = Math.round(audio.duration);
+                            console.log('Определена длительность:', audio.duration, 'секунд');
+                        }
+                    };
+
+                    audio.src = URL.createObjectURL(file);
+                }
+            });
+        });
+    </script>
 }
