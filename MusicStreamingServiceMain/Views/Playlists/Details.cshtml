@@ -78,6 +78,10 @@
             <h5 class="mb-0">
                 <i class="fas fa-list-music me-2"></i> Треки в плейлисте
                 <span class="badge bg-secondary ms-2">@Model.TrackCount</span>
+                @if (User.Identity?.Name == Model.User.Username && Model.PlaylistTracks.Any())
+                {
+                    <small class="text-muted ms-2">(перетащите треки для изменения порядка)</small>
+                }
             </h5>
         </div>
         <div class="card-body p-0">
@@ -87,7 +91,7 @@
                     <table class="table table-hover mb-0" id="playlistTracksTable">
                         <thead>
                             <tr>
-                                <th style="width: 50px;">#</th>
+                                <th style="width: 60px;">#</th>
                                 <th>Название</th>
                                 <th>Исполнитель</th>
                                 <th>Альбом</th>
@@ -102,12 +106,18 @@
                                 <!-- Добавлены data-атрибуты для JS плеера -->
                                 <tr class="track-row"
                                     data-track-id="@track.Id"
+                                    data-track-row-id="@track.Id"
+                                    data-position="@playlistTrack.Position"
                                     data-title="@track.Title"
                                     data-artist="@(track.Artist?.Name ?? "Неизвестный")"
                                     data-duration="@track.Duration">
 
                                     <td class="position-cell align-middle">
-                                        <!-- Кнопка Play вместо номера при наведении -->
+                                        <!-- Элемент для перетаскивания -->
+                                        <div class="drag-handle" style="cursor: move; display: inline-block; margin-right: 10px;">
+                                            <i class="fas fa-arrows-alt text-muted"></i>
+                                        </div>
+                                        <!-- Кнопка Play -->
                                         <button class="btn btn-sm btn-light rounded-circle play-track-btn"
                                                 onclick="playTrackFromList('@track.Id')">
                                             <i class="fas fa-play text-primary"></i>
@@ -207,11 +217,31 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <style>
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #f8f9fa;
+        }
+
+        .sortable-chosen {
+            background-color: #e3f2fd !important;
+        }
+
+        .drag-handle {
+            cursor: move;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+    </style>
     <script>
-        // === ЛОГИКА ПЛЕЕРА ДЛЯ СТРАНИЦЫ ПЛЕЙЛИСТА ===
+        // === ЛОГИКА ПЛЕЕРА И DRAG & DROP ===
 
         let currentTrackIndex = 0;
         let tracks = [];
+        let playlistId = @Model.Id;
+        let sortableInstance = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             // 1. Собираем массив треков из таблицы
@@ -220,32 +250,26 @@
                 id: row.dataset.trackId,
                 title: row.dataset.title,
                 artist: row.dataset.artist,
-                duration: parseInt(row.dataset.duration)
+                duration: parseInt(row.dataset.duration),
+                position: parseInt(row.dataset.position)
             }));
 
             console.log("Плейлист загружен, треков:", tracks.length);
 
-            // 2. Инициализация Drag & Drop (сортировки)
-            const tbody = document.getElementById('playlistTracksBody');
-            if (tbody) {
-                new Sortable(tbody, {
-                    handle: '.handle',
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    onEnd: function (evt) {
-                         // Тут можно добавить отправку нового порядка на сервер
-                    }
-                });
+            // 2. Инициализация Drag & Drop (только для владельца)
+            @if (User.Identity?.Name == Model.User.Username)
+            {
+                    <text>
+                    initializeSortable();
+                    </text>
             }
 
             // 3. ПЕРЕОПРЕДЕЛЕНИЕ КНОПОК ПЛЕЕРА
-            // Используем setTimeout, чтобы гарантировать выполнение после site.js
             setTimeout(function() {
                 const prevBtn = document.querySelector('.player-controls .control-btn:first-child');
                 const nextBtn = document.querySelector('.player-controls .control-btn:last-child');
                 const playBtn = document.querySelector('.player-controls .play-btn');
 
-                // Очищаем события, навешанные site.js, и ставим свои
                 if (prevBtn) {
                     prevBtn.onclick = function(e) {
                         e.preventDefault();
@@ -269,9 +293,113 @@
                         window.togglePlay();
                     };
                 }
-            }, 200); // Небольшая задержка для надежности
+            }, 200);
         });
 
+        // === ФУНКЦИИ ДЛЯ DRAG & DROP ===
+
+        function initializeSortable() {
+            const tbody = document.getElementById('playlistTracksBody');
+            if (tbody) {
+                sortableInstance = Sortable.create(tbody, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    onEnd: function(evt) {
+                        // После изменения порядка сохраняем на сервере
+                        saveNewOrder();
+                    }
+                });
+            }
+        }
+
+        async function saveNewOrder() {
+            try {
+                const rows = document.querySelectorAll('.track-row');
+                const trackIds = Array.from(rows).map(row => parseInt(row.dataset.trackId));
+
+                console.log('Saving new order for playlist', playlistId, ':', trackIds);
+
+                // Получаем токен CSRF
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                const response = await fetch('/Playlists/Reorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json'
+                    },
+                    body: new URLSearchParams({
+                        'playlistId': playlistId,
+                        '__RequestVerificationToken': token,
+                        ...trackIds.reduce((acc, id, index) => {
+                            acc[`trackIds[${index}]`] = id;
+                            return acc;
+                        }, {})
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (data.success) {
+                    // Обновляем позиции в данных
+                    rows.forEach((row, index) => {
+                        row.dataset.position = index;
+                    });
+
+                    // Обновляем массив tracks
+                    trackIds.forEach((trackId, index) => {
+                        const track = tracks.find(t => t.id == trackId);
+                        if (track) {
+                            track.position = index;
+                        }
+                    });
+                } else {
+                    showToast(data.message || 'Ошибка при сохранении порядка', 'error');
+                    // Восстанавливаем исходный порядок в случае ошибки
+                    restoreOriginalOrder();
+                }
+            } catch (error) {
+                console.error('Error saving playlist order:', error);
+                showToast('Произошла ошибка при сохранении: ' + error.message, 'error');
+                restoreOriginalOrder();
+            }
+        }
+
+        function restoreOriginalOrder() {
+            const tbody = document.getElementById('playlistTracksBody');
+            if (tbody) {
+                const rows = Array.from(tbody.querySelectorAll('.track-row'));
+
+                // Сортируем по исходной позиции
+                rows.sort((a, b) => {
+                    const posA = parseInt(a.dataset.position);
+                    const posB = parseInt(b.dataset.position);
+                    return posA - posB;
+                });
+
+                // Перестраиваем таблицу
+                rows.forEach(row => {
+                    tbody.appendChild(row);
+                });
+
+                // Обновляем массив tracks
+                tracks.sort((a, b) => a.position - b.position);
+            }
+        }
+
+        function showToast(message, type) {
+            // Простая реализация уведомления через alert
+            alert(message);
+        }
 
         // === ГЛОБАЛЬНЫЕ ФУНКЦИИ УПРАВЛЕНИЯ ===
 
