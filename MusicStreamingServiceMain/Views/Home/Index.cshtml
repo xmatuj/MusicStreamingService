@@ -8,8 +8,8 @@
         <h1 class="hero-title">Слушайте музыку, которая вам нравится</h1>
         <p class="hero-subtitle">Миллионы треков, персональные рекомендации и удобные плейлисты</p>
         <div class="hero-actions">
-            <a href="#" class="btn btn-primary btn-lg">Начать слушать бесплатно</a>
-            <a href="#" class="btn btn-outline btn-lg">Узнать о подписке</a>
+            <a href="/Account/Profile" class="btn btn-primary btn-lg">Начать слушать бесплатно</a>
+            <a href="/Subscription/Plans" class="btn btn-outline btn-lg">Узнать о подписке</a>
         </div>
     </div>
 </div>
@@ -73,37 +73,6 @@
                 </div>
             }
         </div>
-    </section>
-
-    <!-- "Новые релизы" -->
-    <section>
-    <div class="albums-grid">
-        @foreach (var album in Model.NewReleases)
-        {
-            <div class="album-card">
-                <div class="album-image">
-                    @if (!string.IsNullOrEmpty(album.CoverPath))
-                    {
-                        <img src="@album.CoverPath" alt="@album.Title" class="album-cover" />
-                    }
-                    else
-                    {
-                        <div class="no-cover-placeholder">
-                            <i class="bi bi-compact-disc"></i>
-                        </div>
-                    }
-                    <button class="play-button">
-                        <i class="bi bi-play"></i>
-                    </button>
-                </div>
-                <div class="album-info">
-                    <h3 class="album-title">@album.Title</h3>
-                    <p class="album-artist">@album.Artist?.Name</p>
-                    <p class="album-year">@album.ReleaseDate?.Year</p>
-                </div>
-            </div>
-        }
-    </div>
     </section>
 
     <!-- "Избранные исполнители" -->

@@ -149,6 +149,7 @@ namespace MusicStreamingService.Controllers
             var user = await _context.Users
                 .Include(u => u.Subscriptions)
                 .Include(u => u.Playlists)
+                    .ThenInclude(p => p.PlaylistTracks)
                 .FirstOrDefaultAsync(u => u.Username == username);
 
             if (user == null)

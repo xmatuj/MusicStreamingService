@@ -49,7 +49,7 @@
                         </span>
                     </div>
                     <div class="playlist-actions mt-3">
-                        <!-- Кнопка "Слушать" теперь запускает первый трек -->
+                        <!-- Кнопка "Слушать" запускает первый трек -->
                         <button class="btn btn-primary btn-lg me-2" onclick="playFirstTrack()">
                             <i class="fas fa-play me-1"></i> Слушать
                         </button>
@@ -107,7 +107,7 @@
                                     data-duration="@track.Duration">
 
                                     <td class="position-cell align-middle">
-                                        <!-- Кнопка Play вместо номера при наведении (реализуется CSS/JS или просто кнопка) -->
+                                        <!-- Кнопка Play вместо номера при наведении -->
                                         <button class="btn btn-sm btn-light rounded-circle play-track-btn"
                                                 onclick="playTrackFromList('@track.Id')">
                                             <i class="fas fa-play text-primary"></i>
