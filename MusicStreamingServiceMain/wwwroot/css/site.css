@@ -1347,3 +1347,44 @@ footer {
     ::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8;
     }
+/* Контейнер для горизонтальной ленты */
+.horizontal-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 10px 5px 25px 5px; /* Отступы, снизу побольше для скроллбара */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* Для плавной прокрутки на мобильных */
+}
+
+    /* Стилизация скроллбара */
+    .horizontal-scroll-container::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .horizontal-scroll-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .horizontal-scroll-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+
+        .horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+    /* Карточки внутри горизонтальной ленты */
+    .horizontal-scroll-container .track-card,
+    .horizontal-scroll-container .artist-card {
+        flex: 0 0 220px; /* Фиксированная ширина карточки: не сжиматься, не растягиваться */
+        width: 220px;
+        margin: 0; /* Убираем внешние отступы, так как используем gap у родителя */
+    }
+
+/* Корректировка изображений для фиксированных карточек */
+.track-image, .artist-image {
+    height: 220px; /* Делаем квадратными или чуть вытянутыми */
+}

@@ -30,10 +30,14 @@
         </form>
     </div>
 
-    <!-- Популярные треки -->
+    <!-- Популярные треки (Горизонтальная лента) -->
     <section class="section">
-        <h2 class="section-title">Популярные треки</h2>
-        <div class="tracks-grid">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title mb-0">Треки для вас</h2>
+            <span class="text-muted"><i class="fas fa-random me-1"></i> Случайная подборка</span>
+        </div>
+
+        <div class="horizontal-scroll-container">
             @foreach (var track in Model.PopularTracks)
             {
                 <div class="track-card" data-track-id="@track.Id">
@@ -42,14 +46,14 @@
                         @if (!string.IsNullOrEmpty(track.CoverImage))
                         {
                             <img src="@track.CoverImage" alt="@track.Title"
-                                 style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px;" />
+                                 style="width: 100%; height: 100%; object-fit: cover;" />
                         }
                         else
                         {
                             <!-- Fallback на цветной placeholder -->
-                            <div style="width: 150px; height: 150px; background: @track.ColorHash;
-                                        border-radius: 8px; display: flex; align-items: center;
-                                        justify-content: center; color: white; font-size: 2rem;">
+                            <div style="width: 100%; height: 100%; background: @track.ColorHash;
+                                                display: flex; align-items: center;
+                                                justify-content: center; color: white; font-size: 2rem;">
                                 <i class="bi bi-music"></i>
                             </div>
                         }
@@ -58,9 +62,9 @@
                         </button>
                     </div>
                     <div class="track-info">
-                        <h3 class="track-title">@track.Title</h3>
-                        <p class="track-artist">@track.Artist?.Name</p>
-                        <p class="track-album">@track.Album?.Title</p>
+                        <h3 class="track-title text-truncate" title="@track.Title">@track.Title</h3>
+                        <p class="track-artist text-truncate">@track.Artist?.Name</p>
+                        <p class="track-album text-truncate">@track.Album?.Title</p>
                     </div>
                     <div class="track-actions">
                         <span class="track-duration">@TimeSpan.FromSeconds(track.Duration).ToString(@"mm\:ss")</span>
@@ -75,37 +79,41 @@
         </div>
     </section>
 
-    <!-- "Избранные исполнители" -->
-    <section>
-        <h2 class="section-title">Популярные исполнители</h2>
-        <div class="artists-grid">
-        @foreach (var artist in Model.FeaturedArtists)
-        {
-            <div class="artist-card">
-                <div class="artist-image">
-                    @if (!string.IsNullOrEmpty(artist.PhotoPath))
-                    {
-                        <img src="@artist.PhotoPath" alt="@artist.Name" class="artist-photo" />
-                    }
-                    else
-                    {
-                        <div class="no-photo-placeholder">
-                            <i class="bi bi-user"></i>
-                        </div>
-                    }
+    <!-- "Избранные исполнители" (Горизонтальная лента) -->
+    <section class="section">
+        <h2 class="section-title">Исполнители</h2>
+
+        <div class="horizontal-scroll-container">
+            @foreach (var artist in Model.FeaturedArtists)
+            {
+                <div class="artist-card">
+                    <div class="artist-image">
+                        @if (!string.IsNullOrEmpty(artist.PhotoPath))
+                        {
+                            <img src="@artist.PhotoPath" alt="@artist.Name" class="artist-photo" />
+                        }
+                        else
+                        {
+                            <div class="no-photo-placeholder">
+                                <i class="bi bi-user"></i>
+                            </div>
+                        }
+                    </div>
+                    <div class="artist-info">
+                        <h3 class="artist-name text-truncate">@artist.Name</h3>
+                        <p class="artist-description">
+                            @(artist.Description?.Length > 50 ? artist.Description.Substring(0, 50) + "..." : artist.Description)
+                        </p>
+                    </div>
                 </div>
-                <div class="artist-info">
-                    <h3 class="artist-name">@artist.Name</h3>
-                    <p class="artist-description">@(artist.Description?.Length > 100 ? artist.Description.Substring(0, 100) + "..." : artist.Description)</p>
-                </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
     </section>
 </div>
 
 <!-- Музыкальный плеер -->
 <div class="music-player" id="musicPlayer" style="display: none;">
+    @* ... содержимое плеера ... *@
     <div class="player-controls">
         <button class="control-btn" onclick="previousTrack()">
             <i class="bi bi-skip-backward"></i>
@@ -167,29 +175,17 @@
 
         // Воспроизведение трека
         function playTrack(trackId, title, artist, duration) {
-            
-            // currentPlayingTrackId = trackId;
-            
-            // updateAddToPlaylistButton(trackId);
-            
-            // Останавливаем текущее воспроизведение
             if (currentAudio) {
                 currentAudio.pause();
             }
-
-            // Показываем плеер
             document.getElementById('musicPlayer').style.display = 'flex';
-
-            // Обновляем информацию о треке
             document.getElementById('currentTrackName').textContent = title;
             document.getElementById('currentArtistName').textContent = artist;
             document.getElementById('totalTime').textContent = formatTime(duration);
 
-            // Создаем новый аудио элемент
             currentAudio = new Audio(`/Tracks/Stream/${trackId}`);
             currentTrackId = trackId;
 
-            // Настройка событий аудио
             currentAudio.addEventListener('loadedmetadata', function() {
                 document.getElementById('totalTime').textContent = formatTime(currentAudio.duration);
             });
@@ -202,19 +198,14 @@
                 nextTrack();
             });
 
-            // Начинаем воспроизведение
             currentAudio.play();
             isPlaying = true;
             updatePlayButton();
-
-            // Логируем прослушивание
             fetch(`/Tracks/RecordPlay/${trackId}`);
         }
 
-        // Управление воспроизведением
         function togglePlay() {
             if (!currentAudio) return;
-
             if (isPlaying) {
                 currentAudio.pause();
             } else {
@@ -233,27 +224,21 @@
             }
         }
 
-        // Обновление прогресса
         function updateProgress() {
             if (!currentAudio) return;
-
             const progress = (currentAudio.currentTime / currentAudio.duration) * 100;
             document.getElementById('progressBar').style.width = progress + '%';
             document.getElementById('currentTime').textContent = formatTime(currentAudio.currentTime);
         }
 
-        // Перемотка
         function seek(event) {
             if (!currentAudio) return;
-
             const progressBar = event.currentTarget;
             const rect = progressBar.getBoundingClientRect();
             const percent = (event.clientX - rect.left) / rect.width;
-
             currentAudio.currentTime = percent * currentAudio.duration;
         }
 
-        // Управление громкостью
         function setVolume(value) {
             if (currentAudio) {
                 currentAudio.volume = value / 100;
@@ -262,16 +247,13 @@
 
         function toggleMute() {
             if (!currentAudio) return;
-
             currentAudio.muted = !currentAudio.muted;
             const volumeIcon = document.getElementById('volumeIcon');
             volumeIcon.className = currentAudio.muted ? 'bi bi-volume-mute' : 'bi bi-volume-up';
         }
 
-        // Навигация по трекам
         function nextTrack() {
             if (tracks.length === 0) return;
-
             currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
             const track = tracks[currentTrackIndex];
             playTrack(track.id, track.title, track.artist, track.duration);
@@ -279,106 +261,44 @@
 
         function previousTrack() {
             if (tracks.length === 0) return;
-
             currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
             const track = tracks[currentTrackIndex];
             playTrack(track.id, track.title, track.artist, track.duration);
         }
 
-        // Вспомогательные функции
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
-            // Функция добавления трека в плейлист
-        function addToPlaylist(trackId) {
-            // Проверяем авторизацию
+
+        function isUserAuthenticated() {
+            return document.cookie.includes('.AspNetCore.Cookies');
+        }
+
+        function openAddToPlaylistModal(trackId) {
             if (!isUserAuthenticated()) {
                 alert('Для добавления треков в плейлисты необходимо войти в систему');
                 window.location.href = '/Account/Login';
                 return;
             }
-
-            // Открываем модальное окно
-            if (typeof openAddToPlaylistModal === 'function') {
-                openAddToPlaylistModal(trackId);
-            }
-        }
-
-        // Проверка авторизации пользователя
-        function isUserAuthenticated() {
-            // Простая проверка наличия куки или другого признака авторизации
-            return document.cookie.includes('.AspNetCore.Cookies');
-        }
-
-            // Добавление текущего трека в плейлист
-        function addCurrentTrackToPlaylist() {
-            if (!currentTrackId) {
-                alert('Сначала выберите трек для воспроизведения');
-                return;
-            }
-
-            addToPlaylist(currentTrackId);
-        }
-
-                // Обновление кнопки добавления в плейлист
-            function updateAddToPlaylistButton(trackId) {
-                const addBtn = document.getElementById('addToPlaylistBtn');
-                if (addBtn) {
-                    addBtn.dataset.trackId = trackId;
-                    addBtn.title = `Добавить "${title}" в плейлист`;
-                    addBtn.style.display = 'flex';
-                }
-            }
-
-            // Добавление текущего трека в плейлист
-            function addCurrentTrackToPlaylist() {
-                if (!currentPlayingTrackId) {
-                    showToast('Сначала выберите трек для воспроизведения', 'error');
-                    return;
-                }
-
-                // Используем глобальную функцию из playlists.js
-                if (typeof window.addToPlaylist === 'function') {
-                    window.addToPlaylist(currentPlayingTrackId);
-                } else {
-                    // Если playlists.js еще не загружен, открываем модальное окно напрямую
-                    openAddToPlaylistModal(currentPlayingTrackId);
-                }
-            }
-
-            // Функция открытия модального окна (если playlists.js не загружен)
-            function openAddToPlaylistModal(trackId) {
-                // Проверяем авторизацию
-                if (!isUserAuthenticated()) {
-                    alert('Для добавления треков в плейлисты необходимо войти в систему');
-                    window.location.href = '/Account/Login';
-                    return;
-                }
-
-                // Открываем модальное окно
-                fetch(`/Playlists/AddToPlaylistModal?trackId=${trackId}`)
-                    .then(response => response.text())
-                    .then(html => {
-                        // Создаем модальное окно
-                        const modalContainer = document.createElement('div');
-                        modalContainer.innerHTML = html;
-                        document.body.appendChild(modalContainer.firstElementChild);
-
-                        // Инициализируем и показываем модальное окно
-                        const modal = new bootstrap.Modal(document.getElementById('addToPlaylistModal'));
-                        modal.show();
-                    });
-            }
-                        // Глобальная функция для воспроизведения трека с проверкой рекламы
-            window.playTrackWithAdCheck = function(trackId, title, artist, duration) {
-                checkSubscriptionAndShowAd(function() {
-                    // Вызываем оригинальную функцию воспроизведения
-                    if (typeof playTrack === 'function') {
-                        playTrack(trackId, title, artist, duration);
-                    }
+            fetch(`/Playlists/AddToPlaylistModal?trackId=${trackId}`)
+                .then(response => response.text())
+                .then(html => {
+                    const modalContainer = document.createElement('div');
+                    modalContainer.innerHTML = html;
+                    document.body.appendChild(modalContainer.firstElementChild);
+                    const modal = new bootstrap.Modal(document.getElementById('addToPlaylistModal'));
+                    modal.show();
                 });
-            };
+        }
+
+        window.playTrackWithAdCheck = function(trackId, title, artist, duration) {
+            checkSubscriptionAndShowAd(function() {
+                if (typeof playTrack === 'function') {
+                    playTrack(trackId, title, artist, duration);
+                }
+            });
+        };
     </script>
 }

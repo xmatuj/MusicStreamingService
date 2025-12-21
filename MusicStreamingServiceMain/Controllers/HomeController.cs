@@ -20,30 +20,50 @@ namespace MusicStreamingService.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // 1. Отключаем кэширование браузера, чтобы при нажатии F5 запрос шел на сервер
+            Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+            Response.Headers.Append("Pragma", "no-cache");
+            Response.Headers.Append("Expires", "0");
+
+            // 2. Получаем треки из базы в память
+            var allTracks = await _context.Tracks
+                .Include(t => t.Artist)
+                .Include(t => t.Album)
+                .Include(t => t.Genre)
+                .Where(t => t.IsModerated)
+                .ToListAsync();
+
+            // 3. Перемешиваем список в памяти с помощью C# Random
+            var random = new Random();
+            var shuffledTracks = allTracks
+                .OrderBy(x => random.Next()) // случайная сортировка
+                .Take(15) // Берем 15 штук для ленты
+                .ToList();
+
+            // 4. То же самое для исполнителей
+            var allArtists = await _context.Artists
+                .Include(a => a.Albums)
+                .ToListAsync();
+
+            var shuffledArtists = allArtists
+                .OrderBy(x => random.Next())
+                .Take(10)
+                .ToList();
+
             var viewModel = new HomeViewModel
             {
-                PopularTracks = await _context.Tracks
-                    .Include(t => t.Artist)
-                    .Include(t => t.Album)
-                    .Include(t => t.Genre)
-                    .Where(t => t.IsModerated)
-                    .OrderByDescending(t => t.Statistics.Sum(s => s.ListenCount))
-                    .Take(10)
-                    .ToListAsync(),
+                PopularTracks = shuffledTracks,
 
+                // Новинки оставляем по дате
                 NewReleases = await _context.Albums
                     .Include(a => a.Artist)
                     .Include(a => a.Tracks)
                     .Where(a => a.ReleaseDate.HasValue && a.ReleaseDate.Value >= DateTime.Now.AddMonths(-1))
                     .OrderByDescending(a => a.ReleaseDate)
-                    .Take(8)
+                    .Take(10)
                     .ToListAsync(),
 
-                FeaturedArtists = await _context.Artists
-                    .Include(a => a.Albums)
-                    .OrderByDescending(a => a.Albums.Sum(al => al.Statistics.Sum(s => s.ListenCount)))
-                    .Take(6)
-                    .ToListAsync()
+                FeaturedArtists = shuffledArtists
             };
 
             return View(viewModel);
