@@ -27,7 +27,7 @@ namespace MusicStreamingService.Tests
     [TestFixture]
     public class ControllerTests
     {
-        // Вспомогательный метод для создания чистого контекста базы данных в памяти
+        // Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ СЃРѕР·РґР°РЅРёСЏ С‡РёСЃС‚РѕРіРѕ РєРѕРЅС‚РµРєСЃС‚Р° Р±Р°Р·С‹ РґР°РЅРЅС‹С… РІ РїР°РјСЏС‚Рё
         private ApplicationDbContext GetInMemoryDbContext(string databaseName = null)
         {
             databaseName ??= $"TestDb_{Guid.NewGuid()}";
@@ -41,7 +41,7 @@ namespace MusicStreamingService.Tests
             return context;
         }
 
-        // Вспомогательный метод для настройки окружения контроллера
+        // Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ РЅР°СЃС‚СЂРѕР№РєРё РѕРєСЂСѓР¶РµРЅРёСЏ РєРѕРЅС‚СЂРѕР»Р»РµСЂР°
         private void MockUserIdentity(Controller controller, string username, string role, int userId)
         {
             var claims = new List<Claim>
@@ -53,7 +53,7 @@ namespace MusicStreamingService.Tests
             var identity = new ClaimsIdentity(claims, "TestAuth");
             var claimsPrincipal = new ClaimsPrincipal(identity);
 
-            // Настройка DI контейнера для тестов
+            // РќР°СЃС‚СЂРѕР№РєР° DI РєРѕРЅС‚РµР№РЅРµСЂР° РґР»СЏ С‚РµСЃС‚РѕРІ
             var services = new ServiceCollection();
 
             // 1. AuthenticationService
@@ -90,7 +90,7 @@ namespace MusicStreamingService.Tests
             // 4. Logging
             services.AddLogging();
 
-            // Создаем ServiceProvider и HttpContext
+            // РЎРѕР·РґР°РµРј ServiceProvider Рё HttpContext
             var serviceProvider = services.BuildServiceProvider();
             var httpContext = new DefaultHttpContext();
             httpContext.User = claimsPrincipal;
@@ -115,7 +115,7 @@ namespace MusicStreamingService.Tests
             using var context = GetInMemoryDbContext();
             var loggerMock = new Mock<ILogger<HomeController>>();
 
-            // Добавим данные
+            // Р”РѕР±Р°РІРёРј РґР°РЅРЅС‹Рµ
             context.Tracks.Add(new Track
             {
                 Title = "Track 1",
@@ -215,7 +215,7 @@ namespace MusicStreamingService.Tests
             var loggerMock = new Mock<ILogger<AccountController>>();
             var controller = new AccountController(context, loggerMock.Object);
 
-            // Создаем существующего пользователя
+            // РЎРѕР·РґР°РµРј СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
             context.Users.Add(new User
             {
                 Username = "ExistingUser",
@@ -228,7 +228,7 @@ namespace MusicStreamingService.Tests
 
             var model = new RegisterViewModel
             {
-                Username = "ExistingUser", // Уже существует
+                Username = "ExistingUser", // РЈР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
                 Email = "new@test.com",
                 Password = "password123",
                 ConfirmPassword = "password123"
@@ -241,7 +241,7 @@ namespace MusicStreamingService.Tests
             Assert.IsInstanceOf<ViewResult>(result);
             Assert.IsFalse(controller.ModelState.IsValid);
             Assert.That(controller.ModelState["Username"]?.Errors[0].ErrorMessage,
-                Contains.Substring("уже существует"));
+                Contains.Substring("СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚"));
         }
 
         [Test]
@@ -277,7 +277,7 @@ namespace MusicStreamingService.Tests
                 Email = "test@test.com",
                 Role = UserRole.User
             };
-            user.SetPassword("password123"); // Хешируем пароль
+            user.SetPassword("password123"); // РҐРµС€РёСЂСѓРµРј РїР°СЂРѕР»СЊ
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
@@ -308,12 +308,16 @@ namespace MusicStreamingService.Tests
         {
             // Arrange
             using var context = GetInMemoryDbContext();
+            var envMock = new Mock<IWebHostEnvironment>();
+            envMock.Setup(e => e.WebRootPath).Returns(Path.GetTempPath());
+
+            var controller = new AdminController(context, envMock.Object);
+            MockUserIdentity(controller, "Admin", "Admin", 1);
+
+            // Р”РѕР±Р°РІР»СЏРµРј РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
             context.Users.Add(new User { Username = "User1", Email = "u1@test.com", Role = UserRole.User });
             context.Users.Add(new User { Username = "Admin", Email = "a@test.com", Role = UserRole.Admin });
             await context.SaveChangesAsync();
-
-            var controller = new AdminController(context);
-            MockUserIdentity(controller, "Admin", "Admin", 1);
 
             // Act
             var result = await controller.Users();
@@ -330,22 +334,25 @@ namespace MusicStreamingService.Tests
         {
             // Arrange
             using var context = GetInMemoryDbContext();
+            var envMock = new Mock<IWebHostEnvironment>();
+            envMock.Setup(e => e.WebRootPath).Returns(Path.GetTempPath());
+
+            var controller = new AdminController(context, envMock.Object);
+            MockUserIdentity(controller, "Admin", "Admin", 1);
+
             context.Users.Add(new User { Username = "User1", Email = "u1@test.com", Role = UserRole.User });
             context.Users.Add(new User { Username = "Admin", Email = "a@test.com", Role = UserRole.Admin });
             context.Users.Add(new User { Username = "Another", Email = "another@test.com", Role = UserRole.User });
             await context.SaveChangesAsync();
 
-            var controller = new AdminController(context);
-            MockUserIdentity(controller, "Admin", "Admin", 1);
-
-            // Act - поиск по "User"
+            // Act - РїРѕРёСЃРє РїРѕ "User"
             var result = await controller.Users("User");
 
             // Assert
             Assert.IsInstanceOf<ViewResult>(result);
             var viewResult = result as ViewResult;
             var model = viewResult?.Model as List<User>;
-            Assert.That(model?.Count, Is.EqualTo(2)); // User1 и Another
+            Assert.That(model?.Count, Is.EqualTo(2)); // User1 Рё Another
         }
 
         [Test]
@@ -353,7 +360,10 @@ namespace MusicStreamingService.Tests
         {
             // Arrange
             using var context = GetInMemoryDbContext();
-            var controller = new AdminController(context);
+            var envMock = new Mock<IWebHostEnvironment>();
+            envMock.Setup(e => e.WebRootPath).Returns(Path.GetTempPath());
+
+            var controller = new AdminController(context, envMock.Object);
             MockUserIdentity(controller, "Admin", "Admin", 1);
 
             // Act
@@ -370,15 +380,18 @@ namespace MusicStreamingService.Tests
         {
             // Arrange
             using var context = GetInMemoryDbContext();
-            var controller = new AdminController(context);
+            var envMock = new Mock<IWebHostEnvironment>();
+            envMock.Setup(e => e.WebRootPath).Returns(Path.GetTempPath());
+
+            var controller = new AdminController(context, envMock.Object);
             MockUserIdentity(controller, "Admin", "Admin", 1);
 
             // Act
-            var result = await controller.CreateGenre(""); // Пустое имя
+            var result = await controller.CreateGenre(""); // РџСѓСЃС‚РѕРµ РёРјСЏ
 
             // Assert
             Assert.IsInstanceOf<RedirectToActionResult>(result);
-            Assert.That(context.Genres.Count(), Is.EqualTo(0)); // Не должно добавить
+            Assert.That(context.Genres.Count(), Is.EqualTo(0)); // РќРµ РґРѕР»Р¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ
         }
 
         #endregion
@@ -465,10 +478,10 @@ namespace MusicStreamingService.Tests
             var controller = new PlaylistsController(context, loggerMock.Object);
             MockUserIdentity(controller, "RegularUser", "User", 1);
 
-            // Act - попытка создать без подписки
+            // Act - РїРѕРїС‹С‚РєР° СЃРѕР·РґР°С‚СЊ Р±РµР· РїРѕРґРїРёСЃРєРё
             var result = await controller.Create(new PlaylistCreateViewModel());
 
-            // Assert - должен быть редирект с сообщением об ошибке
+            // Assert - РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ СЂРµРґРёСЂРµРєС‚ СЃ СЃРѕРѕР±С‰РµРЅРёРµРј РѕР± РѕС€РёР±РєРµ
             Assert.IsInstanceOf<RedirectToActionResult>(result);
             var redirectResult = result as RedirectToActionResult;
             Assert.AreEqual("Profile", redirectResult?.ActionName);
@@ -545,7 +558,7 @@ namespace MusicStreamingService.Tests
             // Arrange
             using var context = GetInMemoryDbContext();
 
-            // Создаем все необходимые сущности
+            // РЎРѕР·РґР°РµРј РІСЃРµ РЅРµРѕР±С…РѕРґРёРјС‹Рµ СЃСѓС‰РЅРѕСЃС‚Рё
             var artist = new Artist { Id = 1, Name = "TestArtist" };
             var genre = new Genre { Id = 1, Name = "Pop" };
             var album = new Album { Id = 1, Title = "Test Album", ArtistId = 1 };
@@ -555,7 +568,7 @@ namespace MusicStreamingService.Tests
             context.Albums.Add(album);
             await context.SaveChangesAsync();
 
-            // Модерированный трек
+            // РњРѕРґРµСЂРёСЂРѕРІР°РЅРЅС‹Р№ С‚СЂРµРє
             var moderatedTrack = new Track
             {
                 Title = "Moderated Song",
@@ -571,7 +584,7 @@ namespace MusicStreamingService.Tests
             };
             context.Tracks.Add(moderatedTrack);
 
-            // Немодерированный трек
+            // РќРµРјРѕРґРµСЂРёСЂРѕРІР°РЅРЅС‹Р№ С‚СЂРµРє
             var unmoderatedTrack = new Track
             {
                 Title = "Unmoderated Song",
@@ -592,7 +605,7 @@ namespace MusicStreamingService.Tests
             var controller = new SearchController(context);
             MockUserIdentity(controller, "Guest", "User", 0);
 
-            // Act - ищем по части названия
+            // Act - РёС‰РµРј РїРѕ С‡Р°СЃС‚Рё РЅР°Р·РІР°РЅРёСЏ
             var result = await controller.Index("Song");
 
             // Assert
@@ -601,7 +614,7 @@ namespace MusicStreamingService.Tests
 
             Assert.That(model, Is.Not.Null);
             Assert.That(model?.Tracks.Count, Is.EqualTo(1),
-                "Должен найти только 1 модерированный трек");
+                "Р”РѕР»Р¶РµРЅ РЅР°Р№С‚Рё С‚РѕР»СЊРєРѕ 1 РјРѕРґРµСЂРёСЂРѕРІР°РЅРЅС‹Р№ С‚СЂРµРє");
             Assert.That(model?.Tracks.First().Title, Is.EqualTo("Moderated Song"));
             Assert.That(model?.Tracks.First().IsModerated, Is.True);
         }
@@ -678,7 +691,7 @@ namespace MusicStreamingService.Tests
             context.Genres.Add(genre);
             await context.SaveChangesAsync();
 
-            // Pending track - без модерации
+            // Pending track - Р±РµР· РјРѕРґРµСЂР°С†РёРё
             context.Tracks.Add(new Track
             {
                 Id = 1,
@@ -688,7 +701,7 @@ namespace MusicStreamingService.Tests
                 GenreId = genre.Id
             });
 
-            // Approved track - уже модерирован
+            // Approved track - СѓР¶Рµ РјРѕРґРµСЂРёСЂРѕРІР°РЅ
             context.Tracks.Add(new Track
             {
                 Id = 2,
@@ -698,7 +711,7 @@ namespace MusicStreamingService.Tests
                 GenreId = genre.Id
             });
 
-            // Track with rejection record - есть запись об отклонении
+            // Track with rejection record - РµСЃС‚СЊ Р·Р°РїРёСЃСЊ РѕР± РѕС‚РєР»РѕРЅРµРЅРёРё
             var rejectedTrack = new Track
             {
                 Id = 3,
@@ -711,7 +724,7 @@ namespace MusicStreamingService.Tests
 
             await context.SaveChangesAsync();
 
-            // Добавляем запись модерации для отклоненного трека
+            // Р”РѕР±Р°РІР»СЏРµРј Р·Р°РїРёСЃСЊ РјРѕРґРµСЂР°С†РёРё РґР»СЏ РѕС‚РєР»РѕРЅРµРЅРЅРѕРіРѕ С‚СЂРµРєР°
             var adminUser = new User
             {
                 Id = 100,
@@ -737,7 +750,7 @@ namespace MusicStreamingService.Tests
             // Act
             var result = await controller.Index();
 
-            // Assert - должен показать только трек 1 (pending без записей модерации)
+            // Assert - РґРѕР»Р¶РµРЅ РїРѕРєР°Р·Р°С‚СЊ С‚РѕР»СЊРєРѕ С‚СЂРµРє 1 (pending Р±РµР· Р·Р°РїРёСЃРµР№ РјРѕРґРµСЂР°С†РёРё)
             Assert.IsInstanceOf<ViewResult>(result);
             var model = (result as ViewResult)?.Model as List<Track>;
             Assert.That(model?.Count, Is.EqualTo(1));
@@ -801,7 +814,7 @@ namespace MusicStreamingService.Tests
             var controller = new SubscriptionController(context, loggerMock.Object, configMock.Object);
             MockUserIdentity(controller, "User", "User", 1);
 
-            // Создаем пользователя в базе
+            // РЎРѕР·РґР°РµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ Р±Р°Р·Рµ
             var user = new User
             {
                 Id = 1,
@@ -812,22 +825,22 @@ namespace MusicStreamingService.Tests
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            // Создаем невалидную модель - не согласен с условиями
+            // РЎРѕР·РґР°РµРј РЅРµРІР°Р»РёРґРЅСѓСЋ РјРѕРґРµР»СЊ - РЅРµ СЃРѕРіР»Р°СЃРµРЅ СЃ СѓСЃР»РѕРІРёСЏРјРё
             var model = new SubscriptionViewModel
             {
-                CardName = "", // Пустое имя
-                CardNumber = "", // Пустой номер карты
-                ExpiryDate = "", // Пустая дата
-                CVV = "", // Пустой CVV
-                AgreeToTerms = false // Не согласен с условиями - это критично!
+                CardName = "", // РџСѓСЃС‚РѕРµ РёРјСЏ
+                CardNumber = "", // РџСѓСЃС‚РѕР№ РЅРѕРјРµСЂ РєР°СЂС‚С‹
+                ExpiryDate = "", // РџСѓСЃС‚Р°СЏ РґР°С‚Р°
+                CVV = "", // РџСѓСЃС‚РѕР№ CVV
+                AgreeToTerms = false // РќРµ СЃРѕРіР»Р°СЃРµРЅ СЃ СѓСЃР»РѕРІРёСЏРјРё - СЌС‚Рѕ РєСЂРёС‚РёС‡РЅРѕ!
             };
 
-            // Вручную добавляем ошибки в ModelState
-            controller.ModelState.AddModelError("CardName", "Имя на карте обязательно");
-            controller.ModelState.AddModelError("CardNumber", "Номер карты обязателен");
-            controller.ModelState.AddModelError("ExpiryDate", "Дата окончания обязательна");
-            controller.ModelState.AddModelError("CVV", "CVV обязателен");
-            controller.ModelState.AddModelError("AgreeToTerms", "Необходимо согласие с условиями");
+            // Р’СЂСѓС‡РЅСѓСЋ РґРѕР±Р°РІР»СЏРµРј РѕС€РёР±РєРё РІ ModelState
+            controller.ModelState.AddModelError("CardName", "РРјСЏ РЅР° РєР°СЂС‚Рµ РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ");
+            controller.ModelState.AddModelError("CardNumber", "РќРѕРјРµСЂ РєР°СЂС‚С‹ РѕР±СЏР·Р°С‚РµР»РµРЅ");
+            controller.ModelState.AddModelError("ExpiryDate", "Р”Р°С‚Р° РѕРєРѕРЅС‡Р°РЅРёСЏ РѕР±СЏР·Р°С‚РµР»СЊРЅР°");
+            controller.ModelState.AddModelError("CVV", "CVV РѕР±СЏР·Р°С‚РµР»РµРЅ");
+            controller.ModelState.AddModelError("AgreeToTerms", "РќРµРѕР±С…РѕРґРёРјРѕ СЃРѕРіР»Р°СЃРёРµ СЃ СѓСЃР»РѕРІРёСЏРјРё");
 
             // Act
             var result = await controller.Create(model);
@@ -836,7 +849,7 @@ namespace MusicStreamingService.Tests
             Assert.IsInstanceOf<ViewResult>(result);
             Assert.IsFalse(controller.ModelState.IsValid);
 
-            // Проверяем, что подписка НЕ создана
+            // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ РїРѕРґРїРёСЃРєР° РќР• СЃРѕР·РґР°РЅР°
             Assert.That(context.Subscriptions.Count(), Is.EqualTo(0));
         }
 
@@ -856,7 +869,7 @@ namespace MusicStreamingService.Tests
                 Role = UserRole.Subscriber
             };
 
-            // Активная подписка
+            // РђРєС‚РёРІРЅР°СЏ РїРѕРґРїРёСЃРєР°
             user.Subscriptions.Add(new Subscription
             {
                 StartDate = DateTime.Now.AddDays(-10),
@@ -865,7 +878,7 @@ namespace MusicStreamingService.Tests
                 Amount = 299
             });
 
-            // Истекшая подписка
+            // РСЃС‚РµРєС€Р°СЏ РїРѕРґРїРёСЃРєР°
             user.Subscriptions.Add(new Subscription
             {
                 StartDate = DateTime.Now.AddDays(-40),
@@ -959,7 +972,7 @@ namespace MusicStreamingService.Tests
             };
             context.Tracks.Add(track);
 
-            // Статистика за сегодня
+            // РЎС‚Р°С‚РёСЃС‚РёРєР° Р·Р° СЃРµРіРѕРґРЅСЏ
             context.TrackStatistics.Add(new TrackStatistics
             {
                 TrackId = 1,
@@ -967,7 +980,7 @@ namespace MusicStreamingService.Tests
                 Date = DateTime.UtcNow
             });
 
-            // Статистика за старую дату
+            // РЎС‚Р°С‚РёСЃС‚РёРєР° Р·Р° СЃС‚Р°СЂСѓСЋ РґР°С‚Сѓ
             context.TrackStatistics.Add(new TrackStatistics
             {
                 TrackId = 1,
@@ -980,10 +993,10 @@ namespace MusicStreamingService.Tests
             var controller = new StatisticsController(context);
             MockUserIdentity(controller, "Admin", "Admin", 1);
 
-            // Act - фильтр "today"
+            // Act - С„РёР»СЊС‚СЂ "today"
             var result = await controller.Tracks(period: "today");
 
-            // Assert - только сегодняшняя статистика
+            // Assert - С‚РѕР»СЊРєРѕ СЃРµРіРѕРґРЅСЏС€РЅСЏСЏ СЃС‚Р°С‚РёСЃС‚РёРєР°
             var model = (result as ViewResult)?.Model as List<TrackStatViewModel>;
             Assert.That(model?.Count, Is.EqualTo(1));
             Assert.That(model?.First().TotalListens, Is.EqualTo(10));
@@ -1052,12 +1065,13 @@ namespace MusicStreamingService.Tests
             // Arrange
             using var context = GetInMemoryDbContext();
             var envMock = new Mock<IWebHostEnvironment>();
+            var loggerMock = new Mock<ILogger<TracksController>>();
 
-            // Создаем временную директорию для сохранения файла
+            // РЎРѕР·РґР°РµРј РІСЂРµРјРµРЅРЅСѓСЋ РґРёСЂРµРєС‚РѕСЂРёСЋ РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ С„Р°Р№Р»Р°
             var tempDir = Path.Combine(Path.GetTempPath(), $"TestAudio_{Guid.NewGuid()}");
             Directory.CreateDirectory(tempDir);
 
-            // Важно: WebRootPath должен указывать на корень с папкой audio
+            // Р’Р°Р¶РЅРѕ: WebRootPath РґРѕР»Р¶РµРЅ СѓРєР°Р·С‹РІР°С‚СЊ РЅР° РєРѕСЂРµРЅСЊ СЃ РїР°РїРєРѕР№ audio
             var wwwrootPath = Path.Combine(tempDir, "wwwroot");
             var audioPath = Path.Combine(wwwrootPath, "audio");
             Directory.CreateDirectory(audioPath);
@@ -1075,7 +1089,7 @@ namespace MusicStreamingService.Tests
             context.Genres.Add(new Genre { Id = 1, Name = "Pop" });
             context.Artists.Add(new Artist { Id = 1, Name = "Self" });
 
-            // Добавляем администратора для модерации
+            // Р”РѕР±Р°РІР»СЏРµРј Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР° РґР»СЏ РјРѕРґРµСЂР°С†РёРё
             var admin = new User
             {
                 Id = 100,
@@ -1086,10 +1100,10 @@ namespace MusicStreamingService.Tests
 
             await context.SaveChangesAsync();
 
-            var controller = new TracksController(context, envMock.Object);
+            var controller = new TracksController(context, envMock.Object, loggerMock.Object);
             MockUserIdentity(controller, "Musician", "Musician", 99);
 
-            // Создаем fake файл в памяти
+            // РЎРѕР·РґР°РµРј fake С„Р°Р№Р» РІ РїР°РјСЏС‚Рё
             var fileContent = "fake audio content";
             var fileName = "song.mp3";
             var stream = new MemoryStream();
@@ -1129,7 +1143,7 @@ namespace MusicStreamingService.Tests
                 Assert.AreEqual("Profile", redirectResult?.ActionName);
                 Assert.AreEqual("Account", redirectResult?.ControllerName);
 
-                // Проверяем что трек сохранен
+                // РџСЂРѕРІРµСЂСЏРµРј С‡С‚Рѕ С‚СЂРµРє СЃРѕС…СЂР°РЅРµРЅ
                 Assert.That(context.Tracks.Count(), Is.EqualTo(1));
                 var savedTrack = await context.Tracks.FirstOrDefaultAsync();
                 Assert.That(savedTrack, Is.Not.Null);
@@ -1137,15 +1151,15 @@ namespace MusicStreamingService.Tests
                 Assert.That(savedTrack.IsModerated, Is.False);
                 Assert.That(savedTrack.Title, Is.EqualTo("New Song"));
 
-                // Проверяем что запись модерации создана
+                // РџСЂРѕРІРµСЂСЏРµРј С‡С‚Рѕ Р·Р°РїРёСЃСЊ РјРѕРґРµСЂР°С†РёРё СЃРѕР·РґР°РЅР°
                 var moderation = await context.Moderations.FirstOrDefaultAsync();
                 Assert.That(moderation, Is.Not.Null);
                 Assert.That(moderation.TrackId, Is.EqualTo(savedTrack.Id));
-                Assert.That(moderation.ModeratorId, Is.EqualTo(100)); // ID администратора
+                Assert.That(moderation.ModeratorId, Is.EqualTo(100)); // ID Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°
             }
             finally
             {
-                // Очистка
+                // РћС‡РёСЃС‚РєР°
                 if (Directory.Exists(tempDir))
                 {
                     try
@@ -1154,18 +1168,19 @@ namespace MusicStreamingService.Tests
                     }
                     catch
                     {
-                        // Игнорируем ошибки очистки
+                        // РРіРЅРѕСЂРёСЂСѓРµРј РѕС€РёР±РєРё РѕС‡РёСЃС‚РєРё
                     }
                 }
             }
         }
 
         [Test]
-        public async Task Tracks_Create_ReturnsView_WhenUserCannotUpload()
+        public async Task Tracks_Create_ReturnsRedirect_WhenUserCannotUpload()
         {
             // Arrange
             using var context = GetInMemoryDbContext();
             var envMock = new Mock<IWebHostEnvironment>();
+            var loggerMock = new Mock<ILogger<TracksController>>();
 
             var regularUser = new User
             {
@@ -1176,13 +1191,13 @@ namespace MusicStreamingService.Tests
             context.Users.Add(regularUser);
             await context.SaveChangesAsync();
 
-            var controller = new TracksController(context, envMock.Object);
+            var controller = new TracksController(context, envMock.Object, loggerMock.Object);
             MockUserIdentity(controller, "Regular", "User", 100);
 
-            // Act - GET запрос
+            // Act - GET Р·Р°РїСЂРѕСЃ
             var result = controller.Create();
 
-            // Assert - должен быть редирект
+            // Assert - РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ СЂРµРґРёСЂРµРєС‚
             Assert.IsInstanceOf<RedirectToActionResult>(result.Result);
             var redirectResult = result.Result as RedirectToActionResult;
             Assert.AreEqual("Profile", redirectResult?.ActionName);
@@ -1195,6 +1210,7 @@ namespace MusicStreamingService.Tests
             // Arrange
             using var context = GetInMemoryDbContext();
             var envMock = new Mock<IWebHostEnvironment>();
+            var loggerMock = new Mock<ILogger<TracksController>>();
 
             var artist = new Artist { Name = "Test Artist" };
             var genre = new Genre { Name = "Test Genre" };
@@ -1220,7 +1236,7 @@ namespace MusicStreamingService.Tests
             context.Tracks.Add(track);
             await context.SaveChangesAsync();
 
-            var controller = new TracksController(context, envMock.Object);
+            var controller = new TracksController(context, envMock.Object, loggerMock.Object);
             MockUserIdentity(controller, "User", "User", 1);
 
             // Act
@@ -1234,7 +1250,7 @@ namespace MusicStreamingService.Tests
             Assert.That(model?.Title, Is.EqualTo("Test Track"));
             Assert.That(model?.Artist?.Name, Is.EqualTo("Test Artist"));
 
-            // Проверяем, что добавилась статистика
+            // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ РґРѕР±Р°РІРёР»Р°СЃСЊ СЃС‚Р°С‚РёСЃС‚РёРєР°
             var stats = await context.TrackStatistics.CountAsync();
             Assert.That(stats, Is.EqualTo(1));
         }
@@ -1245,6 +1261,7 @@ namespace MusicStreamingService.Tests
             // Arrange
             using var context = GetInMemoryDbContext();
             var envMock = new Mock<IWebHostEnvironment>();
+            var loggerMock = new Mock<ILogger<TracksController>>();
 
             var track = new Track
             {
@@ -1255,7 +1272,7 @@ namespace MusicStreamingService.Tests
             context.Tracks.Add(track);
             await context.SaveChangesAsync();
 
-            var controller = new TracksController(context, envMock.Object);
+            var controller = new TracksController(context, envMock.Object, loggerMock.Object);
             MockUserIdentity(controller, "User", "User", 1);
 
             // Act
@@ -1267,7 +1284,7 @@ namespace MusicStreamingService.Tests
 
         #endregion
 
-        #region Граничные значения - TracksController Edge Cases
+        #region Р“СЂР°РЅРёС‡РЅС‹Рµ Р·РЅР°С‡РµРЅРёСЏ - TracksController Edge Cases
 
         [TestFixture]
         public class TracksControllerEdgeCaseTests
@@ -1275,14 +1292,16 @@ namespace MusicStreamingService.Tests
             private ApplicationDbContext _context;
             private TracksController _controller;
             private Mock<IWebHostEnvironment> _envMock;
+            private Mock<ILogger<TracksController>> _loggerMock;
 
             [SetUp]
             public void Setup()
             {
                 _context = GetInMemoryDbContext();
                 _envMock = new Mock<IWebHostEnvironment>();
+                _loggerMock = new Mock<ILogger<TracksController>>();
                 _envMock.Setup(e => e.WebRootPath).Returns(Path.GetTempPath());
-                _controller = new TracksController(_context, _envMock.Object);
+                _controller = new TracksController(_context, _envMock.Object, _loggerMock.Object);
             }
 
             [TearDown]
@@ -1337,7 +1356,7 @@ namespace MusicStreamingService.Tests
             [Test]
             public async Task RecordPlay_ReturnsNotFound_ForNonExistingTrack()
             {
-                // Arrange - трек не существует
+                // Arrange - С‚СЂРµРє РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
                 // Act
                 var result = await _controller.RecordPlay(999);
 
@@ -1348,7 +1367,7 @@ namespace MusicStreamingService.Tests
             [Test]
             public async Task RecordPlay_ReturnsNotFound_ForUnmoderatedTrack()
             {
-                // Arrange - трек существует, но не модерирован
+                // Arrange - С‚СЂРµРє СЃСѓС‰РµСЃС‚РІСѓРµС‚, РЅРѕ РЅРµ РјРѕРґРµСЂРёСЂРѕРІР°РЅ
                 var track = new Track
                 {
                     Id = 2,
@@ -1364,7 +1383,7 @@ namespace MusicStreamingService.Tests
                 // Assert
                 Assert.IsInstanceOf<NotFoundResult>(result);
 
-                // Проверяем, что статистика НЕ записана
+                // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ СЃС‚Р°С‚РёСЃС‚РёРєР° РќР• Р·Р°РїРёСЃР°РЅР°
                 var statExists = await _context.TrackStatistics
                     .AnyAsync(ts => ts.TrackId == 2);
                 Assert.IsFalse(statExists);
@@ -1373,7 +1392,7 @@ namespace MusicStreamingService.Tests
             [Test]
             public async Task RecordPlay_ReturnsOk_ForTrackIdMaxValue()
             {
-                // Arrange - ID с максимальным значением
+                // Arrange - ID СЃ РјР°РєСЃРёРјР°Р»СЊРЅС‹Рј Р·РЅР°С‡РµРЅРёРµРј
                 var maxId = int.MaxValue;
                 var track = new Track
                 {
@@ -1398,7 +1417,7 @@ namespace MusicStreamingService.Tests
             [Test]
             public async Task RecordPlay_MultipleCalls_IncrementsStatistics()
             {
-                // Arrange - многократный вызов
+                // Arrange - РјРЅРѕРіРѕРєСЂР°С‚РЅС‹Р№ РІС‹Р·РѕРІ
                 var track = new Track
                 {
                     Id = 5,
@@ -1408,7 +1427,7 @@ namespace MusicStreamingService.Tests
                 _context.Tracks.Add(track);
                 await _context.SaveChangesAsync();
 
-                // Act - вызываем 3 раза
+                // Act - РІС‹Р·С‹РІР°РµРј 3 СЂР°Р·Р°
                 await _controller.RecordPlay(5);
                 await _controller.RecordPlay(5);
                 await _controller.RecordPlay(5);
@@ -1435,14 +1454,14 @@ namespace MusicStreamingService.Tests
                 _context.Tracks.Add(track);
                 await _context.SaveChangesAsync();
 
-                // Act - несколько "параллельных" вызовов
+                // Act - РЅРµСЃРєРѕР»СЊРєРѕ "РїР°СЂР°Р»Р»РµР»СЊРЅС‹С…" РІС‹Р·РѕРІРѕРІ
                 var tasks = Enumerable.Range(0, 5)
                     .Select(_ => _controller.RecordPlay(10))
                     .ToList();
 
                 await Task.WhenAll(tasks);
 
-                // Assert - все вызовы завершились успешно
+                // Assert - РІСЃРµ РІС‹Р·РѕРІС‹ Р·Р°РІРµСЂС€РёР»РёСЃСЊ СѓСЃРїРµС€РЅРѕ
                 foreach (var task in tasks)
                 {
                     Assert.IsInstanceOf<OkResult>(await task);
@@ -1458,7 +1477,7 @@ namespace MusicStreamingService.Tests
             [Test]
             public async Task RecordPlay_NegativeTrackId_ReturnsNotFound()
             {
-                // Arrange - отрицательный ID
+                // Arrange - РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№ ID
                 // Act
                 var result = await _controller.RecordPlay(-1);
 
@@ -1469,7 +1488,7 @@ namespace MusicStreamingService.Tests
             [Test]
             public async Task RecordPlay_EmptyDatabase_ReturnsNotFound()
             {
-                // Arrange - база данных пустая
+                // Arrange - Р±Р°Р·Р° РґР°РЅРЅС‹С… РїСѓСЃС‚Р°СЏ
                 // Act
                 var result = await _controller.RecordPlay(1);
 
@@ -1480,7 +1499,7 @@ namespace MusicStreamingService.Tests
             [Test]
             public async Task RecordPlay_TrackIdWithSpecialCharactersInTitle_Works()
             {
-                // Arrange - трек с "специальными" символами в названии
+                // Arrange - С‚СЂРµРє СЃ "СЃРїРµС†РёР°Р»СЊРЅС‹РјРё" СЃРёРјРІРѕР»Р°РјРё РІ РЅР°Р·РІР°РЅРёРё
                 var track = new Track
                 {
                     Id = 30,
